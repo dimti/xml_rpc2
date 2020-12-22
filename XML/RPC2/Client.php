@@ -11,6 +11,8 @@ use XML\RPC2\Exception\InvalidDebugException;
 use XML\RPC2\Exception\InvalidPrefixException;
 use XML\RPC2\Exception\InvalidSslverifyException;
 use XML\RPC2\Exception\InvalidUriException;
+use XML\RPC2\Backend\Php\Php_Client;
+use XML\RPC2\Backend\Xmlrpcext\Xmlrpcext_Client;
 
 /**
 * +-----------------------------------------------------------------------------+
