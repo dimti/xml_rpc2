@@ -238,7 +238,7 @@ abstract class Client
         if (isset($options['backend'])) {
             Backend::setBackend($options['backend']);
         }
-        $backend = Backend::getClientClassname();
+        $backend = "\\XML\\RPC2\\Backend\\".Backend::getClientClassname();
         return new $backend($uri, $options);
     }
     

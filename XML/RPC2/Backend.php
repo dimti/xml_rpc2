@@ -171,7 +171,7 @@ abstract class Backend
      * @return string The Client class name
      */
     public static function getClientClassname() {
-        return sprintf('%s_Client', self::getBackend());
+        return sprintf('%s\%s_Client', self::getBackend(), self::getBackend());
     }
     
     // }}}

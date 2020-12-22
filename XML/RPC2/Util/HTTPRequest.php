@@ -211,11 +211,11 @@ class HTTPRequest
     public function sendRequest()
     {
         if (is_null($this->_httpRequest)) {
-            $this->_httpRequest = new HTTP_Request2($this->_uri, HTTP_Request2::METHOD_POST);
+            $this->_httpRequest = new \HTTP_Request2($this->_uri, \HTTP_Request2::METHOD_POST);
         }
         $request = $this->_httpRequest;
         $request->setUrl($this->_uri);
-        $request->setMethod(HTTP_Request2::METHOD_POST);
+        $request->setMethod(\HTTP_Request2::METHOD_POST);
         if (isset($params['proxy'])) {
             $elements = parse_url($params['proxy']);
             if (is_array($elements)) {
@@ -244,7 +244,7 @@ class HTTPRequest
             if ($result->getStatus() != 200) {
                 throw new ReceivedInvalidStatusCodeException('Received non-200 HTTP Code: ' . $result->getStatus() . '. Response body:' . $result->getBody());
             }
-        } catch (HTTP_Request2_Exception $e) {
+        } catch (\HTTP_Request2_Exception $e) {
             throw new CurlException($e->getMessage(), 0);
         }
         $this->_body = $result->getBody();
