@@ -2,14 +2,14 @@
 
 namespace XML\RPC2\Backend\Php;
 
-use XML\RPC2\Backend\Php\Value\Value_Datetime;
-use XML\RPC2\Backend\Php\Value\Value_Scalar;
-use XML\RPC2\Backend\Php\Value\Value_Struct;
+use XML\RPC2\Backend\Php\Value\PhpValue_Datetime;
+use XML\RPC2\Backend\Php\Value\PhpValue_Scalar;
+use XML\RPC2\Backend\Php\Value\PhpValue_Struct;
 use XML\RPC2\Exception\DecodeException;
 use XML\RPC2\Exception\InvalidTypeEncodeException;
 use XML\RPC2\Value as AbstractValue;
-use XML\RPC2\Backend\Php\Value\Value_Array;
-use XML\RPC2\Backend\Php\Value\Value_Base64;
+use XML\RPC2\Backend\Php\Value\PhpValue_Array;
+use XML\RPC2\Backend\Php\Value\PhpValue_Base64;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
@@ -63,7 +63,7 @@ use XML\RPC2\Backend\Php\Value\Value_Base64;
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-abstract class Value extends AbstractValue
+abstract class Php_Value extends AbstractValue
 {
     // {{{ properties
     
@@ -128,7 +128,7 @@ abstract class Value extends AbstractValue
      * @param string The xml-rpc target encoding type, as per the xmlrpc spec (optional)
      * @throws InvalidTypeEncodeException When the native value has a type that can't be translated to XML_RPC
      * @return AbstractValue instance
-     * @see Client::__call
+     * @see Php_Client::__call
      * @see Server
      */
     public static function createFromNative($nativeValue, $explicitType = null) 
@@ -187,7 +187,7 @@ abstract class Value extends AbstractValue
         $explicitType = ucfirst(strtolower($explicitType));
         switch ($explicitType) {
             case 'I8':
-                return Value_Scalar::createFromNative($nativeValue, 'Integer64');
+                return PhpValue_Scalar::createFromNative($nativeValue, 'Integer64');
                 break;
             case 'I4':
             case 'Int':
@@ -195,20 +195,20 @@ abstract class Value extends AbstractValue
             case 'Double':
             case 'String':
             case 'Nil':
-                return Value_Scalar::createFromNative($nativeValue);
+                return PhpValue_Scalar::createFromNative($nativeValue);
                 break;
             case 'Datetime.iso8601':
             case 'Datetime':
-                return new Value_Datetime($nativeValue);
+                return new PhpValue_Datetime($nativeValue);
                 break;
             case 'Base64':
-                return new Value_Base64($nativeValue);
+                return new PhpValue_Base64($nativeValue);
                 break;
             case 'Array':
-                return new Value_Array($nativeValue);
+                return new PhpValue_Array($nativeValue);
                 break;
             case 'Struct':
-                return new Value_Struct($nativeValue);
+                return new PhpValue_Struct($nativeValue);
                 break;
             default:
                 throw new InvalidTypeEncodeException(sprintf('Unexpected explicit encoding type \'%s\'', $explicitType));

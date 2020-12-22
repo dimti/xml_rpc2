@@ -171,8 +171,7 @@ abstract class Backend
      * @return string The Client class name
      */
     public static function getClientClassname() {
-        require_once(sprintf('XML/RPC2/Backend/%s/Client.php', self::getBackend()));
-        return sprintf('XML_RPC2_Backend_%s_Client', self::getBackend());
+        return sprintf('%s_Client', self::getBackend());
     }
     
     // }}}
@@ -185,8 +184,7 @@ abstract class Backend
      * @return string The Value class name
      */
     public static function getValueClassname() {
-        require_once(sprintf('XML/RPC2/Backend/%s/Value.php', self::getBackend()));
-        return sprintf('XML_RPC2_Backend_%s_Value', self::getBackend());
+        return sprintf('%s_Value', self::getBackend());
     }
     
     // }}}

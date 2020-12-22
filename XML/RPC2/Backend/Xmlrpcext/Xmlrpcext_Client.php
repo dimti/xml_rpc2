@@ -1,15 +1,14 @@
 <?php
 
-namespace XML\RPC2\Backend\Php;
-
-use XML\RPC2\Client as AbstractClient;
-use XML\RPC2\ClientHelper;
-use XML\RPC2\Exception\Exception;
-use XML\RPC2\Util\HTTPRequest;
+namespace XML\RPC2\Backend\Xmlrpcext;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Client as AbstractClient;
+use XML\RPC2\ClientHelper;
+use XML\RPC2\Exception\FaultException;
+use XML\RPC2\Util\HTTPRequest;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -47,16 +46,11 @@ use XML\RPC2\Util\HTTPRequest;
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Backend/Php/Request.php';
-require_once 'XML/RPC2/Backend/Php/Response.php';
-// }}}
+//}}}
 
 /**
- * XML_RPC client backend class. This is the default, all-php XML_RPC client backend.
+ * XML_RPC client backend class. This backend class uses the XMLRPCext extension to execute the call.
  *
- * This backend does not require the xmlrpc extension to be compiled in. It implements
- * XML_RPC based on the always present DOM and SimpleXML PHP5 extensions.
- * 
  * @category   XML
  * @package    XML_RPC2
  * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
@@ -64,16 +58,16 @@ require_once 'XML/RPC2/Backend/Php/Response.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class Client extends AbstractClient
+class Xmlrpcext_Client extends AbstractClient
 {
-
+    
     // {{{ constructor
-
+    
     /**
      * Construct a new XML_RPC2_Client PHP Backend.
      *
-     * To create a new XML_RPC2_Client, a URI must be provided (e.g. http://xmlrpc.example.com/1.0/). 
-     * Optionally, some options may be set
+     * A URI must be provided (e.g. http://xmlrpc.example.com/1.0/). 
+     * Optionally, some options may be set.
      *
      * @param string URI for the XML-RPC server
      * @param array (optional) Associative array of options
@@ -81,12 +75,9 @@ class Client extends AbstractClient
     public function __construct($uri, $options = array())
     {
         parent::__construct($uri, $options);
-        if ($this->encoding != 'utf-8') {
-            throw new Exception('XML_RPC2_Backend_Php does not support any encoding other than utf-8, due to a simplexml limitation');
-        }
     }
     
-    // }}} 
+    // }}}
     // {{{ __call()
     
     /**
@@ -104,9 +95,14 @@ class Client extends AbstractClient
      */
     public function __call($methodName, $parameters)
     {
-        $request = new Request($this->prefix . $methodName, $this->encoding);
-        $request->setParameters($parameters);
-        $request = $request->encode();
+        $tmp = \xmlrpc_encode_request($this->prefix . $methodName, $parameters, array('escaping' => $this->escaping, 'encoding' => $this->encoding));
+        if ($this->uglyStructHack) {
+            // ugly hack because of http://bugs.php.net/bug.php?id=21949
+            // see XML_RPC2_Backend_Xmlrpcext_Value::createFromNative() from more infos
+            $request = preg_replace('~<name>xml_rpc2_ugly_struct_hack_(.*)</name>~', '<name>\1</name>', $tmp);
+        } else {
+            $request = $tmp;
+        }
         $uri = $this->uri;
         $options = array(
             'encoding' => $this->encoding,
@@ -122,18 +118,20 @@ class Client extends AbstractClient
         if ($this->debug) {
             ClientHelper::printPreParseDebugInfo($request, $body);
         }
-        try {
-            $document = new \SimpleXMLElement($body);
-            $result   = Response::decode($document);
-        } catch (Exception $e) {
+        $result = xmlrpc_decode($body, $this->encoding);
+        /* Commented due to change in behaviour from xmlrpc_decode. It does not return faults now
+        if ($result === false || is_null($result)) {
             if ($this->debug) {
-                if (get_class($e)=='FaultException') {
-                    print "FaultException #" . $e->getFaultCode() . " : " . $e->getMessage();
-                } else {
-                    print get_class($e) . " : " . $e->getMessage();
-                }
+                print "XML_RPC2_Exception : unable to decode response !";
             }
-            throw $e;
+            throw new XML_RPC2_Exception('Unable to decode response');
+        }
+        */
+        if (is_array($result) && xmlrpc_is_fault($result)) {
+            if ($this->debug) {
+                print "XML_RPC2_FaultException(${result['faultString']}, ${result['faultCode']})";
+            }
+            throw new FaultException($result['faultString'], $result['faultCode']);
         }
         if ($this->debug) {
             ClientHelper::printPostRequestDebugInformation($result);
@@ -145,4 +143,3 @@ class Client extends AbstractClient
     
 }
 
-?>

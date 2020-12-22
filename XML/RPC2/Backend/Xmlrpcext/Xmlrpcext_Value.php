@@ -55,7 +55,7 @@ use XML\RPC2\Exception\Exception;
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class Value
+class Xmlrpcext_Value
 {
     
     // {{{ createFromNative()

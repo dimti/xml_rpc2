@@ -2,7 +2,7 @@
 
 namespace XML\RPC2\Backend\Php\Value;
 
-use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Backend\Php\Php_Value as AbstractValue;
 use XML\RPC2\Exception\InvalidTypeException;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
@@ -65,7 +65,7 @@ require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_Base64 extends AbstractValue
+class PhpValue_Base64 extends AbstractValue
 {
     
     // {{{ constructor

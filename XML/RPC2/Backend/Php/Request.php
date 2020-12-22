@@ -167,7 +167,7 @@ class Request
         $result .= "<params>";
         foreach($parameters as $parameter) {
             $result .= "<param><value>";
-            $result .= ($parameter instanceof Value) ? $parameter->encode() : Value::createFromNative($parameter)->encode();
+            $result .= ($parameter instanceof Php_Value) ? $parameter->encode() : Php_Value::createFromNative($parameter)->encode();
             $result .= "</value></param>";
         }
         $result .= "</params>";
@@ -190,7 +190,7 @@ class Request
         $params = array();
         foreach ($simpleXML->params->param as $param) {
             foreach ($param->value as $value) {
-                $params[] = Value::createFromDecode($value)->getNativeValue();
+                $params[] = Php_Value::createFromDecode($value)->getNativeValue();
             }
         }
         $result = new Request($methodName);

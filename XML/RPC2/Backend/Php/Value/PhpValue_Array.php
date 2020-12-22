@@ -5,7 +5,7 @@ namespace XML\RPC2\Backend\Php\Value;
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
-use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Backend\Php\Php_Value as AbstractValue;
 use XML\RPC2\Exception\InvalidTypeException;
 
 /**
@@ -52,7 +52,7 @@ use XML\RPC2\Exception\InvalidTypeException;
  * @author Sergio Carvalho
  * @package XML_RPC2
  */
-class Value_Array extends AbstractValue
+class PhpValue_Array extends AbstractValue
 {    
 
     // {{{ setNativeValue()

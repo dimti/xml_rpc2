@@ -2,7 +2,7 @@
 
 namespace XML\RPC2\Backend\Php\Value;
 
-use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Backend\Php\Php_Value as AbstractValue;
 use XML\RPC2\Exception\InvalidDateFormatException;
 use XML\RPC2\Exception\InvalidTypeException;
 
@@ -66,7 +66,7 @@ use XML\RPC2\Exception\InvalidTypeException;
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_Datetime extends AbstractValue
+class PhpValue_Datetime extends AbstractValue
 {
 
     // {{{ constructor
