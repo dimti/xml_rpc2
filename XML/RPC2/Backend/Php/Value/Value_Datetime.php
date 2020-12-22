@@ -1,5 +1,11 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
+use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Exception\InvalidDateFormatException;
+use XML\RPC2\Exception\InvalidTypeException;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
@@ -40,8 +46,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
 // }}}
 
 /**
@@ -62,7 +66,7 @@ require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
+class Value_Datetime extends AbstractValue
 {
 
     // {{{ constructor
@@ -79,23 +83,23 @@ class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
     public function __construct($nativeValue)
     {
         if ((!is_int($nativeValue)) and (!is_float($nativeValue)) and (!is_string($nativeValue)) and (!is_object($nativeValue))) {
-            throw new XML_RPC2_InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Datetime from type \'%s\'.', gettype($nativeValue)));
+            throw new InvalidTypeException(sprintf('Cannot create Value_Datetime from type \'%s\'.', gettype($nativeValue)));
         }
         if ((is_object($nativeValue)) &&(strtolower(get_class($nativeValue)) == 'stdclass') && (isset($nativeValue->xmlrpc_type))) {
             $scalar = $nativeValue->scalar;
             $timestamp = $nativeValue->timestamp;
         } else {
             if ((is_int($nativeValue)) or (is_float($nativeValue))) {
-                $scalar = XML_RPC2_Backend_Php_Value_Datetime::_timestampToIso8601($nativeValue);
+                $scalar = self::_timestampToIso8601($nativeValue);
                 $timestamp = (int) $nativeValue;
             } elseif (is_string($nativeValue)) {
                 $scalar= $nativeValue;
-                $timestamp = (int) XML_RPC2_Backend_Php_Value_Datetime::_iso8601ToTimestamp($nativeValue);
+                $timestamp = (int) self::_iso8601ToTimestamp($nativeValue);
             } else {
-                throw new XML_RPC2_InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Datetime from type \'%s\'.', gettype($nativeValue)));
+                throw new InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Datetime from type \'%s\'.', gettype($nativeValue)));
             }
         }
-        $tmp              = new stdclass();
+        $tmp              = new \stdClass();
         $tmp->scalar      = $scalar;
         $tmp->timestamp   = $timestamp;
         $tmp->xmlrpc_type = 'datetime';
@@ -114,7 +118,7 @@ class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
     private static function _iso8601ToTimestamp($datetime)
     {
         if (!preg_match('/([0-9]{4})(-?([0-9]{2})(-?([0-9]{2})(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?/', $datetime, $matches)) {
-            throw new XML_RPC2_InvalidDateFormatException(sprintf('Provided date \'%s\' is not ISO-8601.', $datetime));
+            throw new InvalidDateFormatException(sprintf('Provided date \'%s\' is not ISO-8601.', $datetime));
         }
         $year           = $matches[1];
         $month          = array_key_exists(3, $matches) ? $matches[3] : 1;
@@ -134,7 +138,7 @@ class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
             $tzSeconds = 0;
         }
         if (class_exists('DateTime')) {
-            $result = new DateTime();
+            $result = new \DateTime();
             $result->setDate($year, $month, $day);
             $result->setTime($hour, $minutes, $seconds);
             $result = $result->format('U');
@@ -175,15 +179,15 @@ class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
     {
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
+        $xml = \simplexml_load_string($xml->asXML());
         $value = $xml->xpath('/value/dateTime.iso8601/text()');
         if (!array_key_exists(0, $value)) {
             $value = $xml->xpath('/value/text()');
         }
         // Emulate xmlrpcext results (to be able to switch from a backend to another)
-        $result              = new stdclass();
+        $result              = new \stdClass();
         $result->scalar      = (string) $value[0];
-        $result->timestamp   = (int) XML_RPC2_Backend_Php_Value_Datetime::_iso8601ToTimestamp((string) $value[0]);
+        $result->timestamp   = (int) self::_iso8601ToTimestamp((string) $value[0]);
         $result->xmlrpc_type = 'datetime';
         return $result;
     }
@@ -205,5 +209,3 @@ class XML_RPC2_Backend_Php_Value_Datetime extends XML_RPC2_Backend_Php_Value
     // }}}
 
 }
-
-?>

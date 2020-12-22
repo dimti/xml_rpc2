@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -53,7 +55,7 @@ require_once('Cache/Lite.php');
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_CachedServer {
+class CachedServer {
 
     // {{{ properties
       
@@ -202,7 +204,7 @@ class XML_RPC2_CachedServer {
      */
     public static function create($callTarget, $options = array()) 
     {
-        return new XML_RPC2_CachedServer($callTarget, $options);
+        return new CachedServer($callTarget, $options);
     }
          
     // }}}
@@ -360,7 +362,7 @@ class XML_RPC2_CachedServer {
     private function _workWithoutCache() 
     {
         require_once('XML/RPC2/Server.php');
-        $this->_serverObject = XML_RPC2_Server::create($this->_callTarget, $this->_options);
+        $this->_serverObject = Server::create($this->_callTarget, $this->_options);
         return $this->_serverObject->getResponse();
     }
     

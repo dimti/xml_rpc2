@@ -1,4 +1,7 @@
 <?php
+
+namespace XML\RPC2\Server;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -51,7 +54,7 @@
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-interface XML_RPC2_Server_Input
+interface Input
 {
     /**
      * Return true if there is no input (input is empty)

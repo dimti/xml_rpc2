@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -39,10 +41,6 @@
 
 // }}}
 
-// dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend.php';
-// }}}
 
 /**
  * XML_RPC2 client helper class. 
@@ -58,7 +56,7 @@ require_once 'XML/RPC2/Backend.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_ClientHelper
+class ClientHelper
 {
     // {{{ printPreParseDebugInfo()
     

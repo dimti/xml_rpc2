@@ -1,4 +1,7 @@
 <?php
+
+namespace XML\RPC2\Server\Input;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -38,8 +41,8 @@
 
 // }}}
 
-// Dependencies {{{ 
-require_once('XML/RPC2/Server/Input.php');
+// Dependencies {{{
+use XML\RPC2\Server\Input as InputInterface;
 // }}} 
 
 /**
@@ -52,7 +55,7 @@ require_once('XML/RPC2/Server/Input.php');
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Server_Input_PhpInput implements XML_RPC2_Server_Input
+class PhpInput implements InputInterface
 {
     protected $input;
     /**

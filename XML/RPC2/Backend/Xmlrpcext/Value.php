@@ -1,8 +1,11 @@
 <?php
 
+namespace XML\RPC2\Backend\Xmlrpcext;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\Exception;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,8 +43,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend.php';
 // }}}
 
 /**
@@ -54,7 +55,7 @@ require_once 'XML/RPC2/Backend.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_Backend_Xmlrpcext_Value 
+class Value
 {
     
     // {{{ createFromNative()
@@ -73,13 +74,13 @@ class XML_RPC2_Backend_Xmlrpcext_Value
         if (in_array($type, $availableTypes))  {
             if ($type=='struct') {
                 if (!(is_array($value))) {
-                    throw new XML_RPC2_Exception('With struct type, value has to be an array');                    
+                    throw new Exception('With struct type, value has to be an array');
                 }
                 // Because of http://bugs.php.net/bug.php?id=21949
                 // is some cases (structs with numeric indexes), we need to be able to force the "struct" type
                 // (xmlrpc_set_type doesn't help for this, so we need this ugly hack)
                 $new = array();
-                while (list($k, $v) = each($value)) {
+                foreach ($value as $k => $v) {
                     $new["xml_rpc2_ugly_struct_hack_$k"] = $v;
                     // with this "string" prefix, we are sure that the array will be seen as a "struct"
                 }
@@ -87,7 +88,7 @@ class XML_RPC2_Backend_Xmlrpcext_Value
             }
             $value2 = (string) $value;
             if (!xmlrpc_set_type($value2, $type)) {
-                throw new XML_RPC2_Exception('Error returned from xmlrpc_set_type');
+                throw new Exception('Error returned from xmlrpc_set_type');
             }
             return $value2;
         }
@@ -97,5 +98,3 @@ class XML_RPC2_Backend_Xmlrpcext_Value
     // }}}
     
 }
-
-?>

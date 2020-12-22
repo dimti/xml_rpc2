@@ -1,8 +1,15 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\ConfigException;
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Server\CallHandler\Instance;
+use XML\RPC2\Server\CallHandler\MainHandler;
+use XML\RPC2\Server\Input;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -41,8 +48,6 @@
 
 // dependencies {{{
 require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend.php';
-require_once 'XML/RPC2/Server/Input.php';
 // }}}
 
 
@@ -95,7 +100,7 @@ require_once 'XML/RPC2/Server/Input.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class XML_RPC2_Server 
+abstract class Server
 {
 
     // {{{ properties
@@ -154,7 +159,7 @@ abstract class XML_RPC2_Server
      *
      * Implementation of XML_RPC2_Server_Input that feeds this server with input
      *
-     * @var XML_RPC2_Server_Input 
+     * @var Input
     */
     protected $input;
       
@@ -193,10 +198,10 @@ abstract class XML_RPC2_Server
 
             $options['input'] = new $inputClass();
         } 
-        if ($options['input'] instanceof XML_RPC2_Server_Input) {
+        if ($options['input'] instanceof Input) {
             $this->input = $options['input'];
         } else {
-            throw new XML_RPC2_ConfigException('Invalid value for "input" option. It must be either a XML_RPC2_Server_Input subclass name or XML_RPC2_Server_Input subclass instance');
+            throw new ConfigException('Invalid value for "input" option. It must be either a XML_RPC2_Server_Input subclass name or XML_RPC2_Server_Input subclass instance');
         }
     }
     
@@ -213,22 +218,20 @@ abstract class XML_RPC2_Server
     public static function create($callTarget, $options = array())
     {        
         if (isset($options['backend'])) {
-            XML_RPC2_Backend::setBackend($options['backend']);
+            Backend::setBackend($options['backend']);
         }
         if (isset($options['prefix'])) {
             $prefix = $options['prefix'];
         } else {
             $prefix = '';
         }
-        $backend = XML_RPC2_Backend::getServerClassname();
+        $backend = Backend::getServerClassname();
         // Find callHandler class
         if (!isset($options['callHandler'])) {
             if (is_object($callTarget)) { // Delegate calls to instance methods
-                require_once 'XML/RPC2/Server/CallHandler/Instance.php';
-                $callHandler = new XML_RPC2_Server_CallHandler_Instance($callTarget, $prefix);
+                $callHandler = new Instance($callTarget, $prefix);
             } else { // Delegate calls to static class methods
-                require_once 'XML/RPC2/Server/CallHandler/Class.php';
-                $callHandler = new XML_RPC2_Server_CallHandler_Class($callTarget, $prefix);
+                $callHandler = new MainHandler($callTarget, $prefix);
             }
         } else {
             $callHandler = $options['callHandler'];

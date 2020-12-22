@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Server;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,7 +42,8 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
+//require_once 'XML/RPC2/Exception.php';
+use XML\RPC2\Exception\Exception;
 // }}}
 
 /**
@@ -58,8 +61,8 @@ require_once 'XML/RPC2/Exception.php';
  *  - XML_RPC2_Server_Callhandler_Class: Which exports a classe's public static methods
  *  - XML_RPC2_Server_Callhandler_Instance: Which exports an object's pubilc methods
  *
- * @see XML_RPC2_Server_Callhandler_Class
- * @see XML_RPC2_Server_Callhandler_Instance
+ * @see MainHandler
+ * @see Instance
  * @category   XML
  * @package    XML_RPC2
  * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
@@ -67,7 +70,7 @@ require_once 'XML/RPC2/Exception.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */ 
-abstract class XML_RPC2_Server_CallHandler
+abstract class CallHandler
 {
     
     // {{{ properties
@@ -98,9 +101,9 @@ abstract class XML_RPC2_Server_CallHandler
     /** 
      * method appender 
      *
-     * @param XML_RPC2_Server_Method Method to append to methods
+     * @param Method Method to append to methods
      */
-    protected function addMethod(XML_RPC2_Server_Method $method) 
+    protected function addMethod(Method $method)
     {
         $this->methods[$method->getName()] = $method;
     }
@@ -112,7 +115,7 @@ abstract class XML_RPC2_Server_CallHandler
      * method getter
      *
      * @param string Name of method to return
-     * @param XML_RPC2_Server_Method Method named $name
+     * @param Method Method named $name
      */
     public function getMethod($name)
     {
@@ -125,5 +128,3 @@ abstract class XML_RPC2_Server_CallHandler
     // }}}
     
 }
-
-?>

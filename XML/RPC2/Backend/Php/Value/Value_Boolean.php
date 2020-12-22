@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,19 +42,10 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
 // }}}
 
 /**
- * XML_RPC base64 value class. Instances of this class represent base64-encoded string scalars in XML_RPC
- * 
- * To work on a compatible way with the xmlrpcext backend, we introduce a particular "nativeValue" which is
- * a standard class (stdclass) with two public properties :
- * scalar => the string (non encoded)
- * xmlrpc_type => 'base64'
- * 
- * The constructor can be called with a "classic" string or with a such object 
+ * XML_RPC boolean value class. Instances of this class represent boolean scalars in XML_RPC
  * 
  * @category   XML
  * @package    XML_RPC2
@@ -61,33 +54,19 @@ require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Base64 extends XML_RPC2_Backend_Php_Value
+class Value_Boolean extends Value_Scalar
 {
-    
-    // {{{ constructor
 
+    // {{{ constructor
+    
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Base64 with the given value
+     * Constructor. Will build a new XML_RPC2_Value_Boolean with the given value
      *
-     * This class handles encoding-decoding internally. Do not provide the
-     * native string base64-encoded
-     * 
-     * @param mixed String $nativeValue to be transmited base64-encoded or "stdclass native value"  
+     * @param mixed value
      */
     public function __construct($nativeValue) 
     {
-        if ((is_object($nativeValue)) &&(strtolower(get_class($nativeValue)) == 'stdclass') && (isset($nativeValue->xmlrpc_type))) {
-            $scalar = $nativeValue->scalar;
-        } else {
-            if (!is_string($nativeValue)) {
-                throw new XML_RPC2_InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Base64 from type \'%s\'.', gettype($nativeValue)));
-           }
-            $scalar = $nativeValue;
-        }
-        $tmp              = new stdclass();
-        $tmp->scalar      = $scalar;
-        $tmp->xmlrpc_type = 'base64';
-        $this->setNativeValue($tmp);
+        parent::__construct('boolean', $nativeValue);
     }
     
     // }}}
@@ -100,32 +79,26 @@ class XML_RPC2_Backend_Php_Value_Base64 extends XML_RPC2_Backend_Php_Value
      */
     public function encode() 
     {
-        $native = $this->getNativeValue();
-        return '<base64>' . base64_encode($native->scalar) . '</base64>';
+        return '<boolean>' . ($this->getNativeValue() ? 1 : 0). '</boolean>';
     }
     
-    // }}}
+    // }}} 
     // {{{ decode()
     
     /**
-     * Decode transport XML and set the instance value accordingly
+     * decode. Decode transport XML and set the instance value accordingly
      *
-     * @param mixed $xml The encoded XML-RPC value,
+     * @param mixed The encoded XML-RPC value,
      */
     public static function decode($xml) 
     {
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/base64/text()');
-        if (!array_key_exists(0, $value)) {
-            $value = $xml->xpath('/value/text()');
-        }
-        // Emulate xmlrpcext results (to be able to switch from a backend to another)
-        $result = new stdclass();
-        $result->scalar = base64_decode($value[0]);
-        $result->xmlrpc_type = 'base64';
-        return $result;
+        $xml = \simplexml_load_string($xml->asXML());
+        $value = $xml->xpath('/value/boolean/text()');
+
+        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644   
+        return (boolean) ((string) $value[0]);
     }
     
     // }}}

@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -41,7 +43,6 @@
 
 // dependencies {{{
 require_once('Cache/Lite.php');
-require_once('XML/RPC2/Exception.php');
 // }}}
 
 /**
@@ -54,7 +55,7 @@ require_once('XML/RPC2/Exception.php');
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_CachedClient {
+class CachedClient {
 
     // {{{ properties
     
@@ -209,7 +210,7 @@ class XML_RPC2_CachedClient {
      */
     public static function create($uri, $options = array()) 
     {
-        return new XML_RPC2_CachedClient($uri, $options);
+        return new CachedClient($uri, $options);
     }
          
     // }}}
@@ -300,7 +301,7 @@ class XML_RPC2_CachedClient {
         if (!(isset($this->_clientObject))) {
             // If the XML_RPC2_Client object is not available, let's build it
             require_once('XML/RPC2/Client.php');
-            $this->_clientObject = XML_RPC2_Client::create($this->_uri, $this->_options);
+            $this->_clientObject = Client::create($this->_uri, $this->_options);
         }               
         // the real function call...
         return call_user_func_array(array($this->_clientObject, $methodName), $parameters);

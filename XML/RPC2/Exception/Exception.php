@@ -39,58 +39,19 @@
 
 // }}}
 
-// dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
-// }}}
+namespace XML\RPC2\Exception;
 
 /**
- * XML_RPC double value class. Instances of this class represent int scalars in XML_RPC
+ * XML_RPC2 base exception class. All XML_RPC2 originated exceptions inherit from XML_RPC2_Exception
  *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Double extends XML_RPC2_Backend_Php_Value_Scalar
+class Exception extends \Exception
 {
-
-    // {{{ constructor
-    
-    /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Double with the given value
-     *
-     * @param mixed value
-     */
-    public function __construct($nativeValue) 
-    {
-        $this->setScalarType('double');
-        $this->setNativeValue($nativeValue);
-    }
-    
-    // }}}
-    // {{{ decode()
-    
-    /**
-     * decode. Decode transport XML and set the instance value accordingly
-     *
-     * @param mixed The encoded XML-RPC value,
-     */
-    public static function decode($xml) 
-    {
-        // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
-        // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/double/text()');
-        
-        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
-        return (double) ((string) $value[0]);
-    }
-    
-    // }}}
-    
 }
 
-?>

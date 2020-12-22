@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,8 +42,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend.php';
 // }}}
 
 /**
@@ -54,7 +54,7 @@ require_once 'XML/RPC2/Backend.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class XML_RPC2_Value 
+abstract class Value
 {
     // {{{ createFromNative()
     
@@ -69,7 +69,7 @@ abstract class XML_RPC2_Value
     {
         $xmlrpcTypes = array('int', 'boolean', 'string', 'double', 'datetime', 'base64', 'struct', 'array');
         if (in_array($explicitType, $xmlrpcTypes)) {
-            return @call_user_func(array(XML_RPC2_Backend::getValueClassname(), 'createFromNative'), $value, $explicitType);
+            return @call_user_func(array(Backend::getValueClassname(), 'createFromNative'), $value, $explicitType);
         }
         return $value; 
     }

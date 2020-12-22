@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Backend\Php;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,8 +42,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value.php';
 // }}}
 
 /**
@@ -55,7 +55,7 @@ require_once 'XML/RPC2/Backend/Php/Value.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_Backend_Php_Request
+class Request
 {
     // {{{ properties
     
@@ -167,7 +167,7 @@ class XML_RPC2_Backend_Php_Request
         $result .= "<params>";
         foreach($parameters as $parameter) {
             $result .= "<param><value>";
-            $result .= ($parameter instanceof XML_RPC2_Backend_Php_Value) ? $parameter->encode() : XML_RPC2_Backend_Php_Value::createFromNative($parameter)->encode();
+            $result .= ($parameter instanceof Value) ? $parameter->encode() : Value::createFromNative($parameter)->encode();
             $result .= "</value></param>";
         }
         $result .= "</params>";
@@ -181,8 +181,8 @@ class XML_RPC2_Backend_Php_Request
     /**
      * Decode a request from XML and construct a request object with the createFromDecoded values
      *
-     * @param SimpleXMLElement The encoded XML-RPC request.
-     * @return XML_RPC2_Backend_Php_Request The xml-rpc request, represented as an object instance
+     * @param \SimpleXMLElement The encoded XML-RPC request.
+     * @return Request The xml-rpc request, represented as an object instance
      */
     public static function createFromDecode($simpleXML) 
     {
@@ -190,10 +190,10 @@ class XML_RPC2_Backend_Php_Request
         $params = array();
         foreach ($simpleXML->params->param as $param) {
             foreach ($param->value as $value) {
-                $params[] = XML_RPC2_Backend_Php_Value::createFromDecode($value)->getNativeValue();
+                $params[] = Value::createFromDecode($value)->getNativeValue();
             }
         }
-        $result = new XML_RPC2_Backend_Php_Request($methodName);
+        $result = new Request($methodName);
         $result->setParameters($params);
         return $result;
     }
@@ -202,4 +202,3 @@ class XML_RPC2_Backend_Php_Request
     
 }
 
-?>

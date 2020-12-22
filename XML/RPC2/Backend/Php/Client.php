@@ -1,5 +1,12 @@
 <?php
 
+namespace XML\RPC2\Backend\Php;
+
+use XML\RPC2\Client as AbstractClient;
+use XML\RPC2\ClientHelper;
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Util\HTTPRequest;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,10 +47,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Util/HTTPRequest.php';
-require_once 'XML/RPC2/Value.php';
-require_once 'XML/RPC2/Client.php';
 require_once 'XML/RPC2/Backend/Php/Request.php';
 require_once 'XML/RPC2/Backend/Php/Response.php';
 // }}}
@@ -61,7 +64,7 @@ require_once 'XML/RPC2/Backend/Php/Response.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_Backend_Php_Client extends XML_RPC2_Client
+class Client extends AbstractClient
 {
 
     // {{{ constructor
@@ -78,7 +81,9 @@ class XML_RPC2_Backend_Php_Client extends XML_RPC2_Client
     public function __construct($uri, $options = array())
     {
         parent::__construct($uri, $options);
-        if ($this->encoding != 'utf-8') throw new XML_RPC2_Exception('XML_RPC2_Backend_Php does not support any encoding other than utf-8, due to a simplexml limitation');
+        if ($this->encoding != 'utf-8') {
+            throw new Exception('XML_RPC2_Backend_Php does not support any encoding other than utf-8, due to a simplexml limitation');
+        }
     }
     
     // }}} 
@@ -99,7 +104,7 @@ class XML_RPC2_Backend_Php_Client extends XML_RPC2_Client
      */
     public function __call($methodName, $parameters)
     {
-        $request = new XML_RPC2_Backend_Php_Request($this->prefix . $methodName, $this->encoding);
+        $request = new Request($this->prefix . $methodName, $this->encoding);
         $request->setParameters($parameters);
         $request = $request->encode();
         $uri = $this->uri;
@@ -110,20 +115,20 @@ class XML_RPC2_Backend_Php_Client extends XML_RPC2_Client
             'connectionTimeout' => $this->connectionTimeout
         );
         if (isset($this->httpRequest)) $options['httpRequest'] = $this->httpRequest;
-        $httpRequest = new XML_RPC2_Util_HTTPRequest($uri, $options);
+        $httpRequest = new HTTPRequest($uri, $options);
         $httpRequest->setPostData($request);
         $httpRequest->sendRequest();
         $body = $httpRequest->getBody();
         if ($this->debug) {
-            XML_RPC2_ClientHelper::printPreParseDebugInfo($request, $body);
+            ClientHelper::printPreParseDebugInfo($request, $body);
         }
         try {
-            $document = new SimpleXMLElement($body);
-            $result   = XML_RPC2_Backend_Php_Response::decode($document);
-        } catch (XML_RPC2_Exception $e) {
+            $document = new \SimpleXMLElement($body);
+            $result   = Response::decode($document);
+        } catch (Exception $e) {
             if ($this->debug) {
-                if (get_class($e)=='XML_RPC2_FaultException') {
-                    print "XML_RPC2_FaultException #" . $e->getFaultCode() . " : " . $e->getMessage();
+                if (get_class($e)=='FaultException') {
+                    print "FaultException #" . $e->getFaultCode() . " : " . $e->getMessage();
                 } else {
                     print get_class($e) . " : " . $e->getMessage();
                 }
@@ -131,7 +136,7 @@ class XML_RPC2_Backend_Php_Client extends XML_RPC2_Client
             throw $e;
         }
         if ($this->debug) {
-            XML_RPC2_ClientHelper::printPostRequestDebugInformation($result);
+            ClientHelper::printPostRequestDebugInformation($result);
         }
         return $result;
     }

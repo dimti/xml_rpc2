@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Server;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,7 +42,7 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
+use XML\RPC2\Exception;
 // }}}
 
 /**
@@ -56,7 +58,7 @@ require_once 'XML/RPC2/Exception.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Server_Method
+class Method
 {
     // {{{ properties
     
@@ -154,10 +156,10 @@ class XML_RPC2_Server_Method
     /**
      * Create a new XML-RPC method by introspecting a PHP method
      *
-     * @param ReflectionMethod The PHP method to introspect
+     * @param \ReflectionMethod The PHP method to introspect
      * @param string default prefix
      */
-    public function __construct(ReflectionMethod $method, $defaultPrefix)
+    public function __construct(\ReflectionMethod $method, $defaultPrefix)
     {
         $hidden = false;
         $docs = $method->getDocComment();
@@ -215,9 +217,9 @@ class XML_RPC2_Server_Method
             if (array_key_exists($parameterIndex, $paramDocs) &&
                 preg_match('/@param\s+(\S+)(\s+(.+))/', $paramDocs[$parameterIndex], $matches)) {
                 if (strpos($matches[1], '|')) {
-                    $newParameter['type'] = XML_RPC2_Server_Method::_limitPHPType(explode('|', $matches[1]));
+                    $newParameter['type'] = Method::_limitPHPType(explode('|', $matches[1]));
                 } else {
-                    $newParameter['type'] = XML_RPC2_Server_Method::_limitPHPType($matches[1]);
+                    $newParameter['type'] = Method::_limitPHPType($matches[1]);
                 }
                 $tmp = '$' . $parameter->getName() . ' ';
                 if (strpos($matches[3], '$' . $tmp) === 0) {
@@ -268,7 +270,7 @@ class XML_RPC2_Server_Method
             $paramIndex++;
             if ($paramIndex <= $this->_numberOfRequiredParameters) {
                 // the parameter is not optional
-                $callParamType = XML_RPC2_Server_Method::_limitPHPType(gettype($callParams[$paramIndex-1]));
+                $callParamType = Method::_limitPHPType(gettype($callParams[$paramIndex-1]));
                 if ((!($param['type'] == 'mixed')) and ($param['type'] != $callParamType)) {
                     return false;
                 }
@@ -371,7 +373,6 @@ class XML_RPC2_Server_Method
             'array' => 'array',
             'float' => 'double',
             'double' => 'double',
-            'array' => 'array',
             'struct' => 'array',
             'assoc' => 'array',
             'structure' => 'array',
@@ -388,4 +389,3 @@ class XML_RPC2_Server_Method
     
 }
 
-?>

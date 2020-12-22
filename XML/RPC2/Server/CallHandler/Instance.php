@@ -1,8 +1,13 @@
 <?php
 
+namespace XML\RPC2\Server\CallHandler;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\UnknownMethodException;
+use XML\RPC2\Server\CallHandler as AbstractHandler;
+use XML\RPC2\Server\Method;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -42,7 +47,6 @@
 // dependencies {{{
 require_once 'XML/RPC2/Exception.php';
 require_once 'XML/RPC2/Server/Method.php';
-require_once 'XML/RPC2/Server/CallHandler.php';
 // }}}
 
 /**
@@ -82,10 +86,10 @@ require_once 'XML/RPC2/Server/CallHandler.php';
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
- * @see XML_RPC2_Server::create
- * @see XML_RPC2_Server_Callhandler_Class
+ * @see Server::create
+ * @see MainHandler
  */
-class XML_RPC2_Server_Callhandler_Instance extends XML_RPC2_Server_CallHandler
+class Instance extends AbstractHandler
 {
     
     // {{{ properties
@@ -101,23 +105,23 @@ class XML_RPC2_Server_Callhandler_Instance extends XML_RPC2_Server_CallHandler
     // {{{ constructor 
     
     /**
-     * XML_RPC2_Server_Callhandler_Class Constructor. Creates a new call handler exporting the given object methods
+     * MainHanlder Constructor. Creates a new call handler exporting the given object methods
      *
      * Before using this constructor, take a look at XML_RPC2_Server::create. The factory
      * method is usually a quicker way of instantiating the server and its call handler.
      *
-     * @see XML_RPC2_Server::create()
-     * @param object The Target object. Calls will be made on this instance
+     * @param  object The Target object. Calls will be made on this instance
      * @param string Default prefix to prepend to all exported methods (defaults to '')
+     *@see Server::create()
      */
     public function __construct($instance, $defaultPrefix) 
     {
         $this->_instance = $instance;
-        $reflection = new ReflectionClass(get_class($instance));
+        $reflection = new \ReflectionClass(get_class($instance));
         foreach ($reflection->getMethods() as $method) {
             if (!$method->isStatic() && $method->isPublic() && !$method->isConstructor())
             {
-                $candidate = new XML_RPC2_Server_Method($method, $defaultPrefix);
+                $candidate = new Method($method, $defaultPrefix);
                 if (!$candidate->isHidden()) $this->addMethod($candidate);
             }
         }
@@ -136,7 +140,7 @@ class XML_RPC2_Server_Callhandler_Instance extends XML_RPC2_Server_CallHandler
     public function __call($methodName, $parameters)
     {
         if (!array_key_exists($methodName, $this->getMethods())) {
-            throw new XML_RPC2_UnknownMethodException("Method $methodName is not exported by this server");
+            throw new UnknownMethodException("Method $methodName is not exported by this server");
         }
         return call_user_func_array(array($this->_instance, $this->getMethod($methodName)->getInternalMethod()), $parameters);
     }

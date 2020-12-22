@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,74 +42,38 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value.php';
 // }}}
 
 /**
- * XML_RPC array value class. Represents values of type array
- * 
- * @author Sergio Carvalho
- * @package XML_RPC2
+ * XML_RPC double value class. Instances of this class represent int scalars in XML_RPC
+ *
+ * @category   XML
+ * @package    XML_RPC2
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @copyright  2004-2006 Sergio Carvalho
+ * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
+ * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Array extends XML_RPC2_Backend_Php_Value
-{    
+class Value_Double extends Value_Scalar
+{
 
-    // {{{ setNativeValue()
-    
-    /**
-     * nativeValue property setter
-     *
-     * @param mixed value the new nativeValue
-     */
-    protected function setNativeValue($value) 
-    {
-        if (!is_array($value)) {
-            throw new XML_RPC2_InvalidTypeException(sprintf('Cannot create XML_RPC2_Value_Array from type \'%s\'.', gettype($nativeValue)));
-        }
-        parent::setNativeValue($value);
-    }
-    
-    // }}}
     // {{{ constructor
     
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Array with the given nativeValue
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Double with the given value
      *
-     * @param mixed nativeValue
+     * @param mixed value
      */
     public function __construct($nativeValue) 
     {
-        $this->setNativeValue($nativeValue);
-    }
-       
-    // }}}
-    // {{{ encode()
-    
-    /**
-     * Encode the instance into XML, for transport
-     * 
-     * @return string The encoded XML-RPC value,
-     */
-    public function encode() 
-    {
-        $result = '<array><data>';
-        foreach($this->getNativeValue() as $element) {
-            $result .= '<value>';
-            $result .= ($element instanceof XML_RPC2_Backend_Php_Value) ? 
-                        $element->encode() : 
-                        XML_RPC2_Backend_Php_Value::createFromNative($element)->encode();
-            $result .= '</value>';
-        }
-        $result .= '</data></array>';
-        return $result;
+        parent::__construct('double', $nativeValue);
     }
     
     // }}}
     // {{{ decode()
     
     /**
-     * Decode transport XML and set the instance value accordingly
+     * decode. Decode transport XML and set the instance value accordingly
      *
      * @param mixed The encoded XML-RPC value,
      */
@@ -116,16 +82,13 @@ class XML_RPC2_Backend_Php_Value_Array extends XML_RPC2_Backend_Php_Value
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
         $xml = simplexml_load_string($xml->asXML());
-        $values = $xml->xpath('/value/array/data/value');
-        $result = array();
-        foreach (array_keys($values) as $i) {
-            $result[] = XML_RPC2_Backend_Php_Value::createFromDecode($values[$i])->getNativeValue();
-        }
-        return $result;
+        $value = $xml->xpath('/value/double/text()');
+        
+        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
+        return (double) ((string) $value[0]);
     }
     
     // }}}
-
+    
 }
 
-?>

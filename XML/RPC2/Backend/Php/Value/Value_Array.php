@@ -1,8 +1,12 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Exception\InvalidTypeException;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -33,65 +37,96 @@
 * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
-* @version    CVS: $Id: Integer64.php 224219 2006-12-02 18:09:49Z sergiosgc $
+* @version    CVS: $Id$
 * @link       http://pear.php.net/package/XML_RPC2
 */
 
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
 // }}}
 
 /**
- * XML_RPC integer value class. Instances of this class represent int scalars in XML_RPC
+ * XML_RPC array value class. Represents values of type array
  * 
- * @category   XML
- * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
- * @copyright  2004-2006 Sergio Carvalho
- * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
- * @link       http://pear.php.net/package/XML_RPC2
+ * @author Sergio Carvalho
+ * @package XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Integer64 extends XML_RPC2_Backend_Php_Value_Scalar
-{
+class Value_Array extends AbstractValue
+{    
+
+    // {{{ setNativeValue()
     
+    /**
+     * nativeValue property setter
+     *
+     * @param mixed value the new nativeValue
+     */
+    protected function setNativeValue($value) 
+    {
+        if (!is_array($value)) {
+            throw new InvalidTypeException(sprintf('Cannot create Value_Array from type \'%s\'.', gettype($value)));
+        }
+        parent::setNativeValue($value);
+    }
+    
+    // }}}
     // {{{ constructor
     
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Integer64 with the given value
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Array with the given nativeValue
      *
-     * @param mixed value
+     * @param mixed nativeValue
      */
     public function __construct($nativeValue) 
     {
-        if (PHP_INT_SIZE < 8) throw new XML_RPC2_ConfigException('i8 XML-RPC extension can only be used with 64 bit (or larger) architectures');
-        $this->setScalarType('i8');
         $this->setNativeValue($nativeValue);
+    }
+       
+    // }}}
+    // {{{ encode()
+    
+    /**
+     * Encode the instance into XML, for transport
+     * 
+     * @return string The encoded XML-RPC value,
+     */
+    public function encode() 
+    {
+        $result = '<array><data>';
+        foreach($this->getNativeValue() as $element) {
+            $result .= '<value>';
+            $result .= ($element instanceof Value) ?
+                        $element->encode() : 
+                        Value::createFromNative($element)->encode();
+            $result .= '</value>';
+        }
+        $result .= '</data></array>';
+        return $result;
     }
     
     // }}}
     // {{{ decode()
     
     /**
-     * decode. Decode transport XML and set the instance value accordingly
+     * Decode transport XML and set the instance value accordingly
      *
-     * @param mixed The decoded XML-RPC value,
+     * @param mixed The encoded XML-RPC value,
      */
     public static function decode($xml) 
     {
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/i8/text()');
-        
-        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
-        return (int) ((string) $value[0]);
+        $xml = \simplexml_load_string($xml->asXML());
+        $values = $xml->xpath('/value/array/data/value');
+        $result = array();
+        foreach (array_keys($values) as $i) {
+            $result[] = Value::createFromDecode($values[$i])->getNativeValue();
+        }
+        return $result;
     }
-   
-    // }}}
     
+    // }}}
+
 }
 
-?>

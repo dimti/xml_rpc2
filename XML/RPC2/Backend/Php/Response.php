@@ -1,8 +1,13 @@
 <?php
 
+namespace XML\RPC2\Backend\Php;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Backend\Php\Value\Value_Struct;
+use XML\RPC2\Exception\DecodeException;
+use XML\RPC2\Exception\FaultException;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,9 +45,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value.php';
-require_once 'XML/RPC2/Backend/Php/Value/Struct.php';
 // }}}
 
 /**
@@ -58,7 +60,7 @@ require_once 'XML/RPC2/Backend/Php/Value/Struct.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_Backend_Php_Response
+class Response
 {
     
     // {{{ encode()
@@ -72,15 +74,15 @@ class XML_RPC2_Backend_Php_Response
      * type.
      *
      * @see http://www.xmlrpc.com/spec
-     * @see XML_RPC2_Backend_Php_Value::createFromNative
+     * @see Value::createFromNative
      * @param mixed $param The result value which the response will envelop
      * @param string $encoding encoding
      * @return string The XML payload
      */
     public static function encode($param, $encoding = 'utf-8') 
     {
-        if (!$param instanceof XML_RPC2_Backend_Php_Value) {
-            $param = XML_RPC2_Backend_Php_Value::createFromNative($param);
+        if (!$param instanceof Value) {
+            $param = Value::createFromNative($param);
         }
         $result  = '<?xml version="1.0" encoding="' .  $encoding . '"?>' . "\n";
         $result .= '<methodResponse><params><param><value>' . $param->encode() . '</value></param></params></methodResponse>';
@@ -101,7 +103,7 @@ class XML_RPC2_Backend_Php_Response
      */
     public static function encodeFault($code, $message, $encoding = 'utf-8')
     {
-        $value = new XML_RPC2_Backend_Php_Value_Struct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
+        $value = new Value_Struct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
         $result  = '<?xml version="1.0" encoding="' .  $encoding . '"?>' . "\n";
         $result .= '<methodResponse><fault><value>' . $value->encode() . '</value></fault></methodResponse>';
         return $result;
@@ -115,28 +117,27 @@ class XML_RPC2_Backend_Php_Response
      *
      * This method receives an XML-RPC response document, in SimpleXML format, decodes it and returns the payload value.
      *
-     * @param SimpleXmlElement $xml The Transport XML
+     * @param \SimpleXmlElement $xml The Transport XML
      * @return mixed The response payload
      *
      * @see http://www.xmlrpc.com/spec
-     * @throws XML_RPC2_FaultException Signals the decoded response was an XML-RPC fault
-     * @throws XML_RPC2_DecodeException Signals an ill formed payload response section
+     * @throws FaultException Signals the decoded response was an XML-RPC fault
+     * @throws DecodeException Signals an ill formed payload response section
      */
-    public static function decode(SimpleXMLElement $xml) 
+    public static function decode(\SimpleXMLElement $xml)
     {
         $faultNode = $xml->xpath('/methodResponse/fault');
         if (count($faultNode) == 1) {
-            throw XML_RPC2_FaultException::createFromDecode($faultNode[0]);
+            throw FaultException::createFromDecode($faultNode[0]);
         }
         $paramValueNode = $xml->xpath('/methodResponse/params/param/value');
         if (count($paramValueNode) == 1) {
-            return XML_RPC2_Backend_Php_Value::createFromDecode($paramValueNode[0])->getNativeValue();
+            return Value::createFromDecode($paramValueNode[0])->getNativeValue();
         }
-        throw new XML_RPC2_DecodeException('Unable to decode xml-rpc response. No fault nor params/param elements found');
+        throw new DecodeException('Unable to decode xml-rpc response. No fault nor params/param elements found');
     }
     
     // }}}
     
 }
 
-?>

@@ -1,8 +1,12 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+require_once 'PEAR.php';
+use XML\RPC2\Exception\Exception;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,8 +44,7 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'PEAR.php';
+
 // }}}
 
 /**
@@ -68,7 +71,7 @@ require_once 'PEAR.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class XML_RPC2_Backend 
+abstract class Backend
 {
 
     // {{{ properties
@@ -108,9 +111,9 @@ abstract class XML_RPC2_Backend
         if (
             $backend == 'Xmlrpcext' &&
             !function_exists('xmlrpc_server_create') &&
-            !( PEAR::loadExtension('php_xmlrpc') ) 
+            !( PEAR::loadExtension('php_xmlrpc') )
            ) {
-            throw new XML_RPC2_Exception('Unable to load xmlrpc extension.');
+            throw new Exception('Unable to load xmlrpc extension.');
         }     
         self::$currentBackend = $backend;
     }
@@ -136,7 +139,7 @@ abstract class XML_RPC2_Backend
         if (!isset(self::$currentBackend)) {
             try {
                 self::setBackend('XMLRPCext'); // We prefer this one
-            } catch (XML_RPC2_Exception $e) {
+            } catch (Exception $e) {
                 // TODO According to PEAR CG logging should occur here
                 self::setBackend('php');     // But will settle with this one in case of error
             }

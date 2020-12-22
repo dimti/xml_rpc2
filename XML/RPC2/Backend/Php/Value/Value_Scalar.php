@@ -1,5 +1,11 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
+use XML\RPC2\Backend\Php\Value as AbstractValue;
+use XML\RPC2\Exception\InvalidTypeEncodeException;
+use XML\RPC2\Exception\InvalidTypeException;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,8 +46,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value.php';
 // }}}
 
 /**
@@ -54,7 +58,7 @@ require_once 'XML/RPC2/Backend/Php/Value.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class XML_RPC2_Backend_Php_Value_Scalar extends XML_RPC2_Backend_Php_Value
+abstract class Value_Scalar extends AbstractValue
 {
     
     // {{{ properties
@@ -89,7 +93,7 @@ abstract class XML_RPC2_Backend_Php_Value_Scalar extends XML_RPC2_Backend_Php_Va
                 $this->_scalarType = $value;
                 break;
             default:
-                throw new XML_RPC2_InvalidTypeException(sprintf('Type \'%s\' is not an XML-RPC scalar type', $value));
+                throw new InvalidTypeException(sprintf('Type \'%s\' is not an XML-RPC scalar type', $value));
         }
     }
     
@@ -129,8 +133,8 @@ abstract class XML_RPC2_Backend_Php_Value_Scalar extends XML_RPC2_Backend_Php_Va
      * 
      * @param string The native value
      * @param string Optinally, the scalar type to use
-     * @throws XML_RPC2_InvalidTypeEncodeException When native value's type is not a native type
-     * @return XML_RPC2_Value The newly created value
+     * @throws InvalidTypeEncodeException When native value's type is not a native type
+     * @return AbstractValue The newly created value
      */
     public static function createFromNative($nativeValue, $explicitType = null)
     {
@@ -148,14 +152,13 @@ abstract class XML_RPC2_Backend_Php_Value_Scalar extends XML_RPC2_Backend_Php_Va
                     $explicitType = gettype($nativeValue);
                     break;
                 default:
-                    throw new XML_RPC2_InvalidTypeEncodeException(sprintf('Impossible to encode scalar value \'%s\' from type \'%s\'. Native type is not a scalar XML_RPC type (boolean, integer, double, string)',
+                    throw new InvalidTypeEncodeException(sprintf('Impossible to encode scalar value \'%s\' from type \'%s\'. Native type is not a scalar XML_RPC type (boolean, integer, double, string)',
                         (string) $nativeValue,
                         gettype($nativeValue)));
             }
         }
         $explicitType = ucfirst(strtolower($explicitType));
-        require_once(sprintf('XML/RPC2/Backend/Php/Value/%s.php', $explicitType));
-        $explicitType = sprintf('XML_RPC2_Backend_Php_Value_%s', $explicitType);
+        $explicitType = sprintf('Value_%s', $explicitType);
         return new $explicitType($nativeValue);
     }
     
@@ -176,4 +179,3 @@ abstract class XML_RPC2_Backend_Php_Value_Scalar extends XML_RPC2_Backend_Php_Va
     
 }
 
-?>

@@ -1,4 +1,7 @@
 <?php
+
+namespace XML\RPC2\Server\Input;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -38,9 +41,9 @@
 
 // }}}
 
-// Dependencies {{{ 
-require_once('XML/RPC2/Server/Input.php');
-require_once('XML/RPC2/Exception.php');
+// Dependencies {{{
+use XML\RPC2\Exception\ConfigException;
+use XML\RPC2\Server\Input as InputInterface;
 // }}} 
 
 /**
@@ -53,7 +56,7 @@ require_once('XML/RPC2/Exception.php');
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Server_Input_RawPostData implements XML_RPC2_Server_Input
+class RawPostData implements InputInterface
 {
     protected $input;
     /**
@@ -74,8 +77,12 @@ class XML_RPC2_Server_Input_RawPostData implements XML_RPC2_Server_Input
      */
     public function readRequest()
     {
-        if (!isset($this->input) && !isset($GLOBALS['HTTP_RAW_POST_DATA'])) throw new XML_RPC2_ConfigException('XML_RPC2_Server_Input_RawPostData requested but PHP config does not show GLOBALS[\'HTTP_RAW_POST_DATA\'] as available'); 
-        if (!isset($this->input)) $this->input = $GLOBALS['HTTP_RAW_POST_DATA'];
+        if (!isset($this->input) && !isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
+            throw new ConfigException('XML_RPC2_Server_Input_RawPostData requested but PHP config does not show GLOBALS[\'HTTP_RAW_POST_DATA\'] as available');
+        }
+        if (!isset($this->input)) {
+            $this->input = $GLOBALS['HTTP_RAW_POST_DATA'];
+        }
 
         return $this->input;
     }

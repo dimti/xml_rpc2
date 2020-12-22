@@ -1,8 +1,13 @@
 <?php
 
+namespace XML\RPC2\Backend\Php;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Exception\FaultException;
+use XML\RPC2\Server as AbstractServer;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,9 +45,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Backend/Php/Request.php';
-require_once 'XML/RPC2/Backend/Php/Response.php';
-require_once 'XML/RPC2/Exception.php';
 // }}}
 
 /**
@@ -61,7 +63,7 @@ require_once 'XML/RPC2/Exception.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Server extends XML_RPC2_Server
+class Server extends AbstractServer
 {
 
     // {{{ constructor
@@ -80,7 +82,7 @@ class XML_RPC2_Backend_Php_Server extends XML_RPC2_Server
     {
         parent::__construct($callHandler, $options);
         if (strtolower($this->encoding) != 'utf-8') {
-            throw new XML_RPC2_Exception('XML_RPC2_Backend_Php does not support any encoding other than utf-8, due to a simplexml limitation');
+            throw new Exception('XML_RPC2_Backend_Php does not support any encoding other than utf-8, due to a simplexml limitation');
         }
     }
     
@@ -117,32 +119,31 @@ class XML_RPC2_Backend_Php_Server extends XML_RPC2_Server
             set_error_handler(array('XML_RPC2_Backend_Php_Server', 'errorToException'));
             $request = @simplexml_load_string($this->input->readRequest());
             // TODO : do not use exception but a XMLRPC error !
-            if (!is_object($request)) throw new XML_RPC2_FaultException('Unable to parse request XML', 0);
-            $request = XML_RPC2_Backend_Php_Request::createFromDecode($request);  
+            if (!is_object($request)) throw new FaultException('Unable to parse request XML', 0);
+            $request = Request::createFromDecode($request);
             $methodName = $request->getMethodName();
             $arguments = $request->getParameters();
             if ($this->signatureChecking) {
                 $method = $this->callHandler->getMethod($methodName);
                 if (!($method)) {
                     // see http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php for standard error codes 
-                    return (XML_RPC2_Backend_Php_Response::encodeFault(-32601, 'server error. requested method not found'));
+                    return (Response::encodeFault(-32601, 'server error. requested method not found'));
                 }
                 if (!($method->matchesSignature($methodName, $arguments))) {
-                    return (XML_RPC2_Backend_Php_Response::encodeFault(-32602, 'server error. invalid method parameters'));
+                    return (Response::encodeFault(-32602, 'server error. invalid method parameters'));
                 }
             }
             restore_error_handler();
-            return (XML_RPC2_Backend_Php_Response::encode(call_user_func_array(array($this->callHandler, $methodName), $arguments), $this->encoding));
-        } catch (XML_RPC2_FaultException $e) {
-            return (XML_RPC2_Backend_Php_Response::encodeFault($e->getFaultCode(), $e->getMessage(), $this->encoding));
+            return (Response::encode(call_user_func_array(array($this->callHandler, $methodName), $arguments), $this->encoding));
+        } catch (FaultException $e) {
+            return (Response::encodeFault($e->getFaultCode(), $e->getMessage(), $this->encoding));
         } catch (Exception $e) {
             if (ini_get('display_errors') == 1) {
-                return (XML_RPC2_Backend_Php_Response::encodeFault(1, 'Unhandled ' . get_class($e) . ' exception:' . $e->getMessage() . $e->getTraceAsString(), $this->encoding));
-            } else {
-                return XML_RPC2_Backend_Php_Response::encodeFault(1, 'Unhandled PHP Exception', $this->encoding);
+                return (Response::encodeFault(1, 'Unhandled ' . get_class($e) . ' exception:' . $e->getMessage() . $e->getTraceAsString(), $this->encoding));
             }
+            return Response::encodeFault(1, 'Unhandled PHP Exception', $this->encoding);
         }
     }
     
 }
-?>
+

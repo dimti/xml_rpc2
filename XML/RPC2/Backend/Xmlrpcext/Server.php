@@ -1,8 +1,14 @@
 <?php
 
+namespace XML\RPC2\Backend\Xmlrpcext;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Backend\Php\Response;
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Exception\FaultException;
+use XML\RPC2\Server as AbstractServer;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,9 +46,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Backend/Php/Request.php';
-require_once 'XML/RPC2/Backend/Php/Response.php';
-require_once 'XML/RPC2/Exception.php';
 // }}}
 
 /**
@@ -61,7 +64,7 @@ require_once 'XML/RPC2/Exception.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Xmlrpcext_Server extends XML_RPC2_Server
+class Server extends AbstractServer
 {
     // {{{ properties
     
@@ -92,7 +95,7 @@ class XML_RPC2_Backend_Xmlrpcext_Server extends XML_RPC2_Server
             if (xmlrpc_server_register_method($this->_xmlrpcextServer, 
                                               $method->getName(), 
                                               array($this, 'epiFunctionHandlerAdapter')) !== true) {
-                throw new XML_RPC2_Exception('Unable to setup XMLRPCext server. xmlrpc_server_register_method returned non-true.');
+                throw new Exception('Unable to setup XMLRPCext server. xmlrpc_server_register_method returned non-true.');
             }
         }
     }
@@ -150,10 +153,10 @@ class XML_RPC2_Backend_Xmlrpcext_Server extends XML_RPC2_Server
                 $method = $this->callHandler->getMethod($methodName);
                 if (!($method)) {
                     // see http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php for standard error codes 
-                    return (XML_RPC2_Backend_Php_Response::encodeFault(-32601, 'server error. requested method not found'));
+                    return (Response::encodeFault(-32601, 'server error. requested method not found'));
                 }
                 if (!($method->matchesSignature($methodName, $parameters))) {
-                    return (XML_RPC2_Backend_Php_Response::encodeFault(-32602, 'server error. invalid method parameters'));
+                    return (Response::encodeFault(-32602, 'server error. invalid method parameters'));
                 }
             }
             set_error_handler(array('XML_RPC2_Backend_Xmlrpcext_Server', 'errorToException'));
@@ -163,17 +166,14 @@ class XML_RPC2_Backend_Xmlrpcext_Server extends XML_RPC2_Server
                                                   array('output_type' => 'xml', 'encoding' => $this->encoding));
             restore_error_handler();
             return $response;
-        } catch (XML_RPC2_FaultException $e) {
-            return (XML_RPC2_Backend_Php_Response::encodeFault($e->getFaultCode(), $e->getMessage()));
+        } catch (FaultException $e) {
+            return (Response::encodeFault($e->getFaultCode(), $e->getMessage()));
         } catch (Exception $e) {
             if (ini_get('display_errors') == 1) {
-                return (XML_RPC2_Backend_Php_Response::encodeFault(1, 'Unhandled ' . get_class($e) . ' exception:' . $e->getMessage()));
-            } else {
-                return XML_RPC2_Backend_Php_Response::encodeFault(1, 'Unhandled PHP Exception');
+                return (Response::encodeFault(1, 'Unhandled ' . get_class($e) . ' exception:' . $e->getMessage()));
             }
+            return Response::encodeFault(1, 'Unhandled PHP Exception');
         }
     }
     // }}}
 }
-
-?>

@@ -1,8 +1,16 @@
 <?php
 
+namespace XML\RPC2;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Exception\InvalidConnectionTimeoutException;
+use XML\RPC2\Exception\InvalidDebugException;
+use XML\RPC2\Exception\InvalidPrefixException;
+use XML\RPC2\Exception\InvalidSslverifyException;
+use XML\RPC2\Exception\InvalidUriException;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,9 +48,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend.php';
-require_once 'XML/RPC2/ClientHelper.php';
 // }}}
 
 /**
@@ -70,7 +75,7 @@ require_once 'XML/RPC2/ClientHelper.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class XML_RPC2_Client 
+abstract class Client
 {
     // {{{ properties
     
@@ -164,24 +169,24 @@ abstract class XML_RPC2_Client
     protected function __construct($uri, $options = array())
     {
         if (!$uriParse = parse_url($uri)) {
-            throw new XML_RPC2_InvalidUriException(sprintf('Client URI \'%s\' is not valid', $uri));
+            throw new InvalidUriException(sprintf('Client URI \'%s\' is not valid', $uri));
         }
         $this->uri = $uri;
         if (isset($options['prefix'])) {
-            if (!(XML_RPC2_ClientHelper::testMethodName($options['prefix']))) {
-                throw new XML_RPC2_InvalidPrefixException(sprintf('Prefix \'%s\' is not valid', $options['prefix']));
+            if (!(ClientHelper::testMethodName($options['prefix']))) {
+                throw new InvalidPrefixException(sprintf('Prefix \'%s\' is not valid', $options['prefix']));
             }
             $this->prefix = $options['prefix'];
         }
         if (isset($options['proxy'])) {
             if (!$proxyParse = parse_url($options['proxy'])) {
-                throw new XML_RPC2_InvalidProxyException(sprintf('Proxy URI \'%s\' is not valid', $options['proxy']));
+                throw new Exception(sprintf('Proxy URI \'%s\' is not valid', $options['proxy']));
             }
             $this->proxy = $options['proxy'];
         }
         if (isset($options['debug'])) {
             if (!(is_bool($options['debug']))) {
-                throw new XML_RPC2_InvalidDebugException(sprintf('Debug \'%s\' is not valid', $options['debug']));
+                throw new InvalidDebugException(sprintf('Debug \'%s\' is not valid', $options['debug']));
             }
             $this->debug = $options['debug'];
         }
@@ -198,13 +203,13 @@ abstract class XML_RPC2_Client
         }
         if (isset($options['sslverify'])) {
             if (!(is_bool($options['sslverify']))) {
-                throw new XML_RPC2_InvalidSslverifyException(sprintf('SSL verify \'%s\' is not valid', $options['sslverify']));
+                throw new InvalidSslverifyException(sprintf('SSL verify \'%s\' is not valid', $options['sslverify']));
             }
             $this->sslverify = $options['sslverify'];
         }
         if (isset($options['connectionTimeout'])) {
             if (!(is_int($options['connectionTimeout']))) {
-                throw new XML_RPC2_InvalidConnectionTimeoutException(sprintf('Connection timeout \'%s\' is not valid', $options['connectionTimeout']));
+                throw new InvalidConnectionTimeoutException(sprintf('Connection timeout \'%s\' is not valid', $options['connectionTimeout']));
             }
             $this->connectionTimeout = $options['connectionTimeout'];
         }
@@ -228,13 +233,10 @@ abstract class XML_RPC2_Client
      */
     public static function create($uri, $options = array())
     {
-        if (isset($this)) { // Method called non-statically forward to remote call() as RPC
-            $this->__call('create', func_get_args());
-        }
         if (isset($options['backend'])) {
-            XML_RPC2_Backend::setBackend($options['backend']);
+            Backend::setBackend($options['backend']);
         }
-        $backend = XML_RPC2_Backend::getClientClassname();
+        $backend = Backend::getClientClassname();
         return new $backend($uri, $options);
     }
     

@@ -1,8 +1,14 @@
 <?php
 
+namespace XML\RPC2\Backend\Xmlrpcext;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Client as AbstractClient;
+use XML\RPC2\ClientHelper;
+use XML\RPC2\Exception\FaultException;
+use XML\RPC2\Util\HTTPRequest;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,9 +46,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Client.php';
-require_once 'XML/RPC2/Util/HTTPRequest.php';
 //}}}
 
 /**
@@ -55,7 +58,7 @@ require_once 'XML/RPC2/Util/HTTPRequest.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2 
  */
-class XML_RPC2_Backend_Xmlrpcext_Client extends XML_RPC2_Client
+class Client extends AbstractClient
 {
     
     // {{{ constructor
@@ -92,7 +95,7 @@ class XML_RPC2_Backend_Xmlrpcext_Client extends XML_RPC2_Client
      */
     public function __call($methodName, $parameters)
     {
-        $tmp = xmlrpc_encode_request($this->prefix . $methodName, $parameters, array('escaping' => $this->escaping, 'encoding' => $this->encoding));
+        $tmp = \xmlrpc_encode_request($this->prefix . $methodName, $parameters, array('escaping' => $this->escaping, 'encoding' => $this->encoding));
         if ($this->uglyStructHack) {
             // ugly hack because of http://bugs.php.net/bug.php?id=21949
             // see XML_RPC2_Backend_Xmlrpcext_Value::createFromNative() from more infos
@@ -108,12 +111,12 @@ class XML_RPC2_Backend_Xmlrpcext_Client extends XML_RPC2_Client
             'connectionTimeout' => $this->connectionTimeout
         );
         if (isset($this->httpRequest)) $options['httpRequest'] = $this->httpRequest;
-        $httpRequest = new XML_RPC2_Util_HTTPRequest($uri, $options);
+        $httpRequest = new HTTPRequest($uri, $options);
         $httpRequest->setPostData($request);
         $httpRequest->sendRequest();
         $body = $httpRequest->getBody();
         if ($this->debug) {
-            XML_RPC2_ClientHelper::printPreParseDebugInfo($request, $body);
+            ClientHelper::printPreParseDebugInfo($request, $body);
         }
         $result = xmlrpc_decode($body, $this->encoding);
         /* Commented due to change in behaviour from xmlrpc_decode. It does not return faults now
@@ -128,10 +131,10 @@ class XML_RPC2_Backend_Xmlrpcext_Client extends XML_RPC2_Client
             if ($this->debug) {
                 print "XML_RPC2_FaultException(${result['faultString']}, ${result['faultCode']})";
             }
-            throw new XML_RPC2_FaultException($result['faultString'], $result['faultCode']);
+            throw new FaultException($result['faultString'], $result['faultCode']);
         }
         if ($this->debug) {
-            XML_RPC2_ClientHelper::printPostRequestDebugInformation($result);
+            ClientHelper::printPostRequestDebugInformation($result);
         }
         return $result;
     }
@@ -140,4 +143,3 @@ class XML_RPC2_Backend_Xmlrpcext_Client extends XML_RPC2_Client
     
 }
 
-?>

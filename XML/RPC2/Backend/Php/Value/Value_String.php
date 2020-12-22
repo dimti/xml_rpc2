@@ -1,5 +1,7 @@
 <?php
 
+namespace XML\RPC2\Backend\Php\Value;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
@@ -40,12 +42,10 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
 // }}}
 
 /**
- * XML_RPC integer value class. Instances of this class represent int scalars in XML_RPC
+ * XML_RPC string value class. Instances of this class represent string scalars in XML_RPC
  * 
  * @category   XML
  * @package    XML_RPC2
@@ -54,43 +54,54 @@ require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Backend_Php_Value_Integer extends XML_RPC2_Backend_Php_Value_Scalar
+class Value_String extends Value_Scalar
 {
     
     // {{{ constructor
     
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Integer with the given value
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_String with the given value
      *
      * @param mixed value
      */
     public function __construct($nativeValue) 
     {
-        $this->setScalarType('int');
-        $this->setNativeValue($nativeValue);
+        parent::__construct('string', $nativeValue);
+    }
+    
+    // }}} 
+    // {{{ encode()
+    
+    /**
+     * Encode the instance into XML, for transport
+     * 
+     * @return string The encoded XML-RPC value,
+     */
+    public function encode() 
+    {
+        return '<string>' . strtr($this->getNativeValue(),array('&' => '&amp;', '<' => '&lt;' , '>' => '&gt;')) . '</string>';
     }
     
     // }}}
     // {{{ decode()
     
     /**
-     * decode. Decode transport XML and set the instance value accordingly
+     * Decode transport XML and set the instance value accordingly
      *
-     * @param mixed The decoded XML-RPC value,
+     * @param mixed The encoded XML-RPC value,
      */
     public static function decode($xml) 
     {
-        // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
-        // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/int/text()|/value/i4/text()');
-        
-        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
-        return (int) ((string) $value[0]);
+        /* Stupid way of testing for the presence of string element. I don't know another one.
+           At least got rid of the xpath and consequent reparsing of the XML 
+        */
+        if ($xml->string->asXML() === FALSE) { 
+            return (string) $xml;
+        }
+        return (string) $xml->string;
     }
-   
-    // }}}
     
+    // }}}
+
 }
 
-?>

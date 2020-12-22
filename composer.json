@@ -27,6 +27,8 @@
     ],
     "require": {
         "php": ">=5.2.0",
+        "ext-dom": "*",
+        "ext-simplexml": "*",
         "pear/pear_exception": "^1.0.0",
         "pear/http_request2": "^2.4.0"
     },
@@ -34,8 +36,8 @@
         "phpunit/phpunit": "*"
     },
     "autoload": {
-        "psr-0": {
-            "XML_RPC2": ""
+        "psr-4": {
+            "XML\\RPC2\\": "XML/RPC2/"
         }
     },
     "include-path": [

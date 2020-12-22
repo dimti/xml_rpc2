@@ -1,8 +1,13 @@
 <?php
 
+namespace XML\RPC2\Util;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\CurlException;
+use XML\RPC2\Exception\Exception;
+use XML\RPC2\Exception\ReceivedInvalidStatusCodeException;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,8 +45,6 @@
 // }}}
 
 // dependencies {{{
-require_once 'XML/RPC2/Exception.php';
-require_once 'XML/RPC2/Client.php';
 if (!class_exists('HTTP_Request2', true)) {
     require_once 'HTTP/Request2.php';
 }
@@ -58,7 +61,7 @@ if (!class_exists('HTTP_Request2', true)) {
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class XML_RPC2_Util_HTTPRequest
+class HTTPRequest
 {
 
     // {{{ properties
@@ -165,7 +168,7 @@ class XML_RPC2_Util_HTTPRequest
     */
     public function __construct($uri = '', $params = array())
     {
-        if (!preg_match('/(https?:\/\/)(.*)/', $uri)) throw new XML_RPC2_Exception('Unable to parse URI');
+        if (!preg_match('/(https?:\/\/)(.*)/', $uri)) throw new Exception('Unable to parse URI');
         $this->_uri = $uri;
         if (isset($params['encoding'])) {
             $this->_encoding = $params['encoding'];
@@ -207,7 +210,9 @@ class XML_RPC2_Util_HTTPRequest
     */
     public function sendRequest()
     {
-        if (is_null($this->_httpRequest)) $this->_httpRequest = new HTTP_Request2($this->_uri, HTTP_Request2::METHOD_POST);
+        if (is_null($this->_httpRequest)) {
+            $this->_httpRequest = new HTTP_Request2($this->_uri, HTTP_Request2::METHOD_POST);
+        }
         $request = $this->_httpRequest;
         $request->setUrl($this->_uri);
         $request->setMethod(HTTP_Request2::METHOD_POST);
@@ -231,13 +236,16 @@ class XML_RPC2_Util_HTTPRequest
         $request->setHeader('Content-type: text/xml; charset='.$this->_encoding);
         $request->setHeader('User-Agent: PEAR::XML_RPC2/@package_version@');
         $request->setBody($this->_postData);
-        if (isset($this->_connectionTimeout)) $request->setConfig('timeout', (int) ($this->_connectionTimeout / 1000));
+        if (isset($this->_connectionTimeout)) {
+            $request->setConfig('timeout', (int) ($this->_connectionTimeout / 1000));
+        }
         try {
             $result = $request->send();
-            if ($result->getStatus() != 200) throw new XML_RPC2_ReceivedInvalidStatusCodeException('Received non-200 HTTP Code: ' . $result->getStatus() . '. Response body:' . $result->getBody());
-
+            if ($result->getStatus() != 200) {
+                throw new ReceivedInvalidStatusCodeException('Received non-200 HTTP Code: ' . $result->getStatus() . '. Response body:' . $result->getBody());
+            }
         } catch (HTTP_Request2_Exception $e) {
-            throw new XML_RPC2_CurlException($e->getMessage(), 0);
+            throw new CurlException($e->getMessage(), 0);
         }
         $this->_body = $result->getBody();
         return $result->getBody();
@@ -246,5 +254,3 @@ class XML_RPC2_Util_HTTPRequest
     // }}}
 
 }
-
-?>
