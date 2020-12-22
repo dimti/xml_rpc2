@@ -5,7 +5,7 @@ namespace XML\RPC2\Backend\Php;
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
-use XML\RPC2\Backend\Php\Value\PhpValue_Struct;
+use XML\RPC2\Backend\Php\Value\Value_Struct;
 use XML\RPC2\Exception\DecodeException;
 use XML\RPC2\Exception\FaultException;
 
@@ -103,7 +103,7 @@ class Response
      */
     public static function encodeFault($code, $message, $encoding = 'utf-8')
     {
-        $value = new PhpValue_Struct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
+        $value = new Value_Struct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
         $result  = '<?xml version="1.0" encoding="' .  $encoding . '"?>' . "\n";
         $result .= '<methodResponse><fault><value>' . $value->encode() . '</value></fault></methodResponse>';
         return $result;

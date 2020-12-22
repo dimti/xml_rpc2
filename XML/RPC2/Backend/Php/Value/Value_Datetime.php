@@ -66,7 +66,7 @@ use XML\RPC2\Exception\InvalidTypeException;
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class PhpValue_Datetime extends AbstractValue
+class Value_Datetime extends AbstractValue
 {
 
     // {{{ constructor

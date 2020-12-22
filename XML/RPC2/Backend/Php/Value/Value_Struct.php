@@ -2,11 +2,12 @@
 
 namespace XML\RPC2\Backend\Php\Value;
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
-
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
 use XML\RPC2\Backend\Php\Php_Value as AbstractValue;
 use XML\RPC2\Exception\InvalidTypeException;
+
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
+
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -47,13 +48,17 @@ use XML\RPC2\Exception\InvalidTypeException;
 // }}}
 
 /**
- * XML_RPC array value class. Represents values of type array
- * 
- * @author Sergio Carvalho
- * @package XML_RPC2
+ * XML_RPC struct value class. Represents values of type struct (associative struct)
+ *
+ * @category   XML
+ * @package    XML_RPC2
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @copyright  2004-2006 Sergio Carvalho
+ * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
+ * @link       http://pear.php.net/package/XML_RPC2
  */
-class PhpValue_Array extends AbstractValue
-{    
+class Value_Struct extends AbstractValue
+{
 
     // {{{ setNativeValue()
     
@@ -65,7 +70,7 @@ class PhpValue_Array extends AbstractValue
     protected function setNativeValue($value) 
     {
         if (!is_array($value)) {
-            throw new InvalidTypeException(sprintf('Cannot create Value_Array from type \'%s\'.', gettype($value)));
+            throw new InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Struct from type \'%s\'.', gettype($value)));
         }
         parent::setNativeValue($value);
     }
@@ -74,7 +79,7 @@ class PhpValue_Array extends AbstractValue
     // {{{ constructor
     
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Array with the given nativeValue
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Scalar with the given nativeValue
      *
      * @param mixed nativeValue
      */
@@ -82,7 +87,7 @@ class PhpValue_Array extends AbstractValue
     {
         $this->setNativeValue($nativeValue);
     }
-       
+    
     // }}}
     // {{{ encode()
     
@@ -93,15 +98,20 @@ class PhpValue_Array extends AbstractValue
      */
     public function encode() 
     {
-        $result = '<array><data>';
-        foreach($this->getNativeValue() as $element) {
+        $result = '<struct>';
+        foreach($this->getNativeValue() as $name => $element) {
+            $result .= '<member>';
+            $result .= '<name>';
+            $result .= strtr($name, array('&' => '&amp;', '<' => '&lt;', '>' => '&gt;'));
+            $result .= '</name>';
             $result .= '<value>';
-            $result .= ($element instanceof Value) ?
+            $result .= ($element instanceof AbstractValue) ?
                         $element->encode() : 
-                        Value::createFromNative($element)->encode();
+                        AbstractValue::createFromNative($element)->encode();
             $result .= '</value>';
+            $result .= '</member>';
         }
-        $result .= '</data></array>';
+        $result .= '</struct>';
         return $result;
     }
     
@@ -118,15 +128,14 @@ class PhpValue_Array extends AbstractValue
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
         $xml = \simplexml_load_string($xml->asXML());
-        $values = $xml->xpath('/value/array/data/value');
+        $values = $xml->xpath('/value/struct/member');
         $result = array();
         foreach (array_keys($values) as $i) {
-            $result[] = Value::createFromDecode($values[$i])->getNativeValue();
+            $result[(string) $values[$i]->name] = AbstractValue::createFromDecode($values[$i]->value)->getNativeValue();
         }
         return $result;
     }
     
     // }}}
-
+    
 }
-

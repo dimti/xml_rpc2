@@ -2,14 +2,14 @@
 
 namespace XML\RPC2\Backend\Php;
 
-use XML\RPC2\Backend\Php\Value\PhpValue_Datetime;
-use XML\RPC2\Backend\Php\Value\PhpValue_Scalar;
-use XML\RPC2\Backend\Php\Value\PhpValue_Struct;
+use XML\RPC2\Backend\Php\Value\Value_Datetime;
+use XML\RPC2\Backend\Php\Value\Value_Scalar;
+use XML\RPC2\Backend\Php\Value\Value_Struct;
 use XML\RPC2\Exception\DecodeException;
 use XML\RPC2\Exception\InvalidTypeEncodeException;
 use XML\RPC2\Value as AbstractValue;
-use XML\RPC2\Backend\Php\Value\PhpValue_Array;
-use XML\RPC2\Backend\Php\Value\PhpValue_Base64;
+use XML\RPC2\Backend\Php\Value\Value_Array;
+use XML\RPC2\Backend\Php\Value\Value_Base64;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
@@ -187,7 +187,7 @@ abstract class Php_Value extends AbstractValue
         $explicitType = ucfirst(strtolower($explicitType));
         switch ($explicitType) {
             case 'I8':
-                return PhpValue_Scalar::createFromNative($nativeValue, 'Integer64');
+                return Value_Scalar::createFromNative($nativeValue, 'Integer64');
                 break;
             case 'I4':
             case 'Int':
@@ -195,20 +195,20 @@ abstract class Php_Value extends AbstractValue
             case 'Double':
             case 'String':
             case 'Nil':
-                return PhpValue_Scalar::createFromNative($nativeValue);
+                return Value_Scalar::createFromNative($nativeValue);
                 break;
             case 'Datetime.iso8601':
             case 'Datetime':
-                return new PhpValue_Datetime($nativeValue);
+                return new Value_Datetime($nativeValue);
                 break;
             case 'Base64':
-                return new PhpValue_Base64($nativeValue);
+                return new Value_Base64($nativeValue);
                 break;
             case 'Array':
-                return new PhpValue_Array($nativeValue);
+                return new Value_Array($nativeValue);
                 break;
             case 'Struct':
-                return new PhpValue_Struct($nativeValue);
+                return new Value_Struct($nativeValue);
                 break;
             default:
                 throw new InvalidTypeEncodeException(sprintf('Unexpected explicit encoding type \'%s\'', $explicitType));

@@ -54,7 +54,7 @@ namespace XML\RPC2\Backend\Php\Value;
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_String extends PhpValue_Scalar
+class Value_String extends Value_Scalar
 {
     
     // {{{ constructor

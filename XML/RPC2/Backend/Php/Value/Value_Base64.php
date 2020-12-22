@@ -65,7 +65,7 @@ require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class PhpValue_Base64 extends AbstractValue
+class Value_Base64 extends AbstractValue
 {
     
     // {{{ constructor
