@@ -5,7 +5,6 @@ namespace XML\RPC2\Backend\Php\Value;
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
-use XML\RPC2\Exception\ConfigException;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -33,10 +32,10 @@ use XML\RPC2\Exception\ConfigException;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
-* @version    CVS: $Id: Integer64.php 224219 2006-12-02 18:09:49Z sergiosgc $
+* @version    CVS: $Id$
 * @link       http://pear.php.net/package/XML_RPC2
 */
 
@@ -47,51 +46,49 @@ use XML\RPC2\Exception\ConfigException;
 
 /**
  * XML_RPC integer value class. Instances of this class represent int scalars in XML_RPC
- * 
+ *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_Integer64 extends Value_Scalar
+class ValueInteger extends ValueScalar
 {
-    
+
     // {{{ constructor
-    
+
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Integer64 with the given value
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Integer with the given value
      *
      * @param mixed value
      */
-    public function __construct($nativeValue) 
+    public function __construct($nativeValue)
     {
-        if (PHP_INT_SIZE < 8) throw new ConfigException('i8 XML-RPC extension can only be used with 64 bit (or larger) architectures');
-        parent::__construct('i8', $nativeValue);
+        parent::__construct('int', $nativeValue);
     }
-    
+
     // }}}
     // {{{ decode()
-    
+
     /**
      * decode. Decode transport XML and set the instance value accordingly
      *
      * @param mixed The decoded XML-RPC value,
      */
-    public static function decode($xml) 
+    public static function decode($xml)
     {
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
         $xml = \simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/i8/text()');
-        
+        $value = $xml->xpath('/value/int/text()|/value/i4/text()');
+
         // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
         return (int) ((string) $value[0]);
     }
-   
+
     // }}}
-    
+
 }
 
-?>

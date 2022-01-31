@@ -2,13 +2,13 @@
 
 namespace XML\RPC2\Backend\Php\Value;
 
-use XML\RPC2\Backend\Php\Php_Value as AbstractValue;
+use XML\RPC2\Backend\Php\PhpValue as AbstractValue;
 use XML\RPC2\Exception\InvalidTypeEncodeException;
 use XML\RPC2\Exception\InvalidTypeException;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -36,7 +36,7 @@ use XML\RPC2\Exception\InvalidTypeException;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -50,26 +50,26 @@ use XML\RPC2\Exception\InvalidTypeException;
 
 /**
  * XML_RPC scalar value abstract class. All XML_RPC value classes representing scalar types inherit from XML_RPC2_Value_Scalar
- * 
+ *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class Value_Scalar extends AbstractValue
+abstract class ValueScalar extends AbstractValue
 {
-    
+
     // {{{ properties
-    
+
     /**
      * scalar type
      *
      * @var string
      */
     private $_scalarType = null;
-    
+
     // }}}
     // {{{ setScalarType()
 
@@ -78,7 +78,7 @@ abstract class Value_Scalar extends AbstractValue
      *
      * @param mixed value The new scalarType
      */
-    protected function setScalarType($value) 
+    protected function setScalarType($value)
     {
         switch ($value) {
             case 'nil':
@@ -87,7 +87,7 @@ abstract class Value_Scalar extends AbstractValue
             case 'i4':
             case 'boolean':
             case 'string':
-            case 'double': 
+            case 'double':
             case 'dateTime.iso8601':
             case 'base64':
                 $this->_scalarType = $value;
@@ -96,20 +96,20 @@ abstract class Value_Scalar extends AbstractValue
                 throw new InvalidTypeException(sprintf('Type \'%s\' is not an XML-RPC scalar type', $value));
         }
     }
-    
+
     // }}}
     // {{{ getScalarType()
-    
+
     /**
      * scalarType property getter
      *
      * @return mixed The current scalarType
      */
-    public function getScalarType() 
+    public function getScalarType()
     {
         return $this->_scalarType;
     }
-    
+
     // }}}
     // {{{ constructor
 
@@ -118,19 +118,19 @@ abstract class Value_Scalar extends AbstractValue
      *
      * @param mixed nativeValue
      */
-    public function __construct($scalarType, $nativeValue) 
+    public function __construct($scalarType, $nativeValue)
     {
         $this->setScalarType($scalarType);
         $this->setNativeValue($nativeValue);
     }
-    
+
     // }}}
     // {{{ createFromNative()
-    
+
     /**
-     * Choose a XML_RPC2_Value subclass appropriate for the 
+     * Choose a XML_RPC2_Value subclass appropriate for the
      * given value and create it.
-     * 
+     *
      * @param string The native value
      * @param string Optinally, the scalar type to use
      * @throws InvalidTypeEncodeException When native value's type is not a native type
@@ -157,25 +157,27 @@ abstract class Value_Scalar extends AbstractValue
                         gettype($nativeValue)));
             }
         }
+
         $explicitType = ucfirst(strtolower($explicitType));
-        $explicitType = sprintf('Value_%s', $explicitType);
+        $explicitType = '\XML\RPC2\Backend\Php\Value\\' . sprintf('Value%s', $explicitType);
+
         return new $explicitType($nativeValue);
     }
-    
+
     // }}}
     // {{{ encode()
-    
+
     /**
      * Encode the instance into XML, for transport
-     * 
+     *
      * @return string The encoded XML-RPC value,
      */
-    public function encode() 
+    public function encode()
     {
         return '<' . $this->getScalarType() . '>' . $this->getNativeValue() . '</' . $this->getScalarType() . '>';
     }
-    
+
     // }}}
-    
+
 }
 

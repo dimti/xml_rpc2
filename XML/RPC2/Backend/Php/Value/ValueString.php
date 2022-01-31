@@ -1,15 +1,14 @@
 <?php
 
-namespace XML\RPC2\Backend\Xmlrpcext;
+namespace XML\RPC2\Backend\Php\Value;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
-use XML\RPC2\Exception\Exception;
 
 /**
 * +-----------------------------------------------------------------------------+
-* | Copyright (c) 2004-2006 Sergio Gonalves Carvalho                                |
+* | Copyright (c) 2004-2006 Sergio Goncalves Carvalho                                |
 * +-----------------------------------------------------------------------------+
 * | This file is part of XML_RPC2.                                              |
 * |                                                                             |
@@ -33,7 +32,7 @@ use XML\RPC2\Exception\Exception;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -46,55 +45,63 @@ use XML\RPC2\Exception\Exception;
 // }}}
 
 /**
- * XML_RPC value class for the XMLRPCext backend. 
+ * XML_RPC string value class. Instances of this class represent string scalars in XML_RPC
  *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
- * @link       http://pear.php.net/package/XML_RPC2 
+ * @link       http://pear.php.net/package/XML_RPC2
  */
-class Xmlrpcext_Value
+class ValueString extends ValueScalar
 {
-    
-    // {{{ createFromNative()
-    
+
+    // {{{ constructor
+
     /**
-     * Factory method that constructs the appropriate XML-RPC encoded type value
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_String with the given value
      *
-     * @param mixed Value to be encode
-     * @param string Explicit XML-RPC type as enumerated in the XML-RPC spec (defaults to automatically selected type)
-     * @return mixed The encoded value
+     * @param mixed value
      */
-    public static function createFromNative($value, $explicitType)
+    public function __construct($nativeValue)
     {
-        $type = strtolower($explicitType);
-        $availableTypes = array('datetime', 'base64', 'struct');
-        if (in_array($type, $availableTypes))  {
-            if ($type=='struct') {
-                if (!(is_array($value))) {
-                    throw new Exception('With struct type, value has to be an array');
-                }
-                // Because of http://bugs.php.net/bug.php?id=21949
-                // is some cases (structs with numeric indexes), we need to be able to force the "struct" type
-                // (xmlrpc_set_type doesn't help for this, so we need this ugly hack)
-                $new = array();
-                foreach ($value as $k => $v) {
-                    $new["xml_rpc2_ugly_struct_hack_$k"] = $v;
-                    // with this "string" prefix, we are sure that the array will be seen as a "struct"
-                }
-                return $new;
-            }
-            $value2 = (string) $value;
-            if (!xmlrpc_set_type($value2, $type)) {
-                throw new Exception('Error returned from xmlrpc_set_type');
-            }
-            return $value2;
-        }
-        return $value;
+        parent::__construct('string', $nativeValue);
     }
-    
+
     // }}}
-    
+    // {{{ encode()
+
+    /**
+     * Encode the instance into XML, for transport
+     *
+     * @return string The encoded XML-RPC value,
+     */
+    public function encode()
+    {
+        return '<string>' . strtr($this->getNativeValue(),array('&' => '&amp;', '<' => '&lt;' , '>' => '&gt;')) . '</string>';
+    }
+
+    // }}}
+    // {{{ decode()
+
+    /**
+     * Decode transport XML and set the instance value accordingly
+     *
+     * @param mixed The encoded XML-RPC value,
+     */
+    public static function decode($xml)
+    {
+        /* Stupid way of testing for the presence of string element. I don't know another one.
+           At least got rid of the xpath and consequent reparsing of the XML
+        */
+        if ($xml->string->asXML() === FALSE) {
+            return (string) $xml;
+        }
+        return (string) $xml->string;
+    }
+
+    // }}}
+
 }
+

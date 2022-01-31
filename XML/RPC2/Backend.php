@@ -34,7 +34,7 @@ use XML\RPC2\Exception\Exception;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -48,8 +48,8 @@ use XML\RPC2\Exception\Exception;
 // }}}
 
 /**
- * XML_RPC Backend class. The backend is responsible for the actual execution of 
- * a request, as well as payload encoding and decoding. 
+ * XML_RPC Backend class. The backend is responsible for the actual execution of
+ * a request, as well as payload encoding and decoding.
  *
  * The only external usage of this class is when explicitely setting the backend, as in
  * <code>
@@ -63,10 +63,10 @@ use XML\RPC2\Exception\Exception;
  *  - The server class
  *  - The client class
  *  - The value class
- * 
+ *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
@@ -75,65 +75,65 @@ abstract class Backend
 {
 
     // {{{ properties
-    
+
     /**
      * current backend
      *
      * @var string
      */
     protected static $currentBackend;
-    
+
     // }}}
     // {{{ setBackend()
-    
+
     /**
-     * Backend setter. 
-     * 
-     * Currently, two backends exist: 'php' and 'XMLRPCext'. 
-     * The PHP backend has no external dependencies, while the xmlrpcext
-     * requires the xmlrpc extension. 
+     * Backend setter.
      *
-     * The XMLRPCext backend is quite faster, and will be automatically 
+     * Currently, two backends exist: 'php' and 'XMLRPCext'.
+     * The PHP backend has no external dependencies, while the xmlrpcext
+     * requires the xmlrpc extension.
+     *
+     * The XMLRPCext backend is quite faster, and will be automatically
      * selected when no explicit backend has been set and the extension
      * is available.
      *
      * @param string The backend to select. Either 'php' or 'XMLRPCext'.
-     */ 
+     */
     public static function setBackend($backend)
     {
         $backend = ucfirst(strtolower($backend));
         if (
-            $backend != 'Php' && 
+            $backend != 'Php' &&
             $backend != 'Xmlrpcext'
            ) {
             throw new XML_RPC2_Exception(sprintf('Backend %s does not exist', $backend));
-        }       
+        }
         if (
             $backend == 'Xmlrpcext' &&
             !function_exists('xmlrpc_server_create') &&
-            !( PEAR::loadExtension('php_xmlrpc') )
+            !( \PEAR::loadExtension('php_xmlrpc') )
            ) {
             throw new Exception('Unable to load xmlrpc extension.');
-        }     
+        }
         self::$currentBackend = $backend;
     }
-    
+
     // }}}
     // {{{ getBackend()
-    
+
     /**
-     * Backend getter. 
-     * 
+     * Backend getter.
+     *
      * Return the current backend name. If no backend was previously selected
      * select one and set it.
      *
-     * The xmlrpcext backend is preferred, and will be automatically 
+     * The xmlrpcext backend is preferred, and will be automatically
      * selected when no explicit backend has been set and the xmlrpc
-     * extension exists. If it does not exist, then the php backend is 
+     * extension exists. If it does not exist, then the php backend is
      * selected.
      *
      * @return string The current backend
-     */ 
+     */
     protected static function getBackend()
     {
         if (!isset(self::$currentBackend)) {
@@ -146,10 +146,10 @@ abstract class Backend
         }
         return self::$currentBackend;
     }
-    
+
     // }}}
     // {{{ getServerClassname()
-    
+
     /**
      * Include the relevant php files for the server class, and return the backend server
      * class name.
@@ -160,10 +160,10 @@ abstract class Backend
         require_once(sprintf('XML/RPC2/Backend/%s/Server.php', self::getBackend()));
         return sprintf('XML_RPC2_Backend_%s_Server', self::getBackend());
     }
-    
+
     // }}}
     // {{{ getClientClassname()
-    
+
     /**
      * Include the relevant php files for the client class, and return the backend client
      * class name.
@@ -171,12 +171,12 @@ abstract class Backend
      * @return string The Client class name
      */
     public static function getClientClassname() {
-        return sprintf('%s\%s_Client', self::getBackend(), self::getBackend());
+        return sprintf('%s\%sClient', self::getBackend(), self::getBackend());
     }
-    
+
     // }}}
     // {{{ getValueClassname()
-        
+
     /**
      * Include the relevant php files for the value class, and return the backend value
      * class name.
@@ -184,9 +184,9 @@ abstract class Backend
      * @return string The Value class name
      */
     public static function getValueClassname() {
-        return sprintf('%s_Value', self::getBackend());
+        return sprintf('%sValue', self::getBackend());
     }
-    
+
     // }}}
-    
+
 }

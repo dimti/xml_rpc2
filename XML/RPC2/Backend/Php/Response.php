@@ -5,7 +5,7 @@ namespace XML\RPC2\Backend\Php;
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 // LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
-use XML\RPC2\Backend\Php\Value\Value_Struct;
+use XML\RPC2\Backend\Php\Value\ValueStruct;
 use XML\RPC2\Exception\DecodeException;
 use XML\RPC2\Exception\FaultException;
 
@@ -35,7 +35,7 @@ use XML\RPC2\Exception\FaultException;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -48,50 +48,50 @@ use XML\RPC2\Exception\FaultException;
 // }}}
 
 /**
- * XML-RPC response backend class. 
+ * XML-RPC response backend class.
  *
- * This class represents an XML_RPC request, exposing the methods 
+ * This class represents an XML_RPC request, exposing the methods
  * needed to encode/decode an xml-rpc response.
  *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
- * @link       http://pear.php.net/package/XML_RPC2 
+ * @link       http://pear.php.net/package/XML_RPC2
  */
 class Response
 {
-    
+
     // {{{ encode()
-    
+
     /**
      * Encode a normal XML-RPC response, containing the provided value
      *
      * You may supply a php-native value, or an XML_RPC2_Backend_Php_Value instance, to be returned. Usually providing a native value
-     * is more convenient. However, for some types, XML_RPC2_Backend_Php_Value::createFromNative can't properly choose the xml-rpc 
-     * type. In these cases, constructing an XML_RPC2_Backend_Php_Value and using it as param here is the only way to return the desired 
+     * is more convenient. However, for some types, XML_RPC2_Backend_Php_Value::createFromNative can't properly choose the xml-rpc
+     * type. In these cases, constructing an XML_RPC2_Backend_Php_Value and using it as param here is the only way to return the desired
      * type.
      *
      * @see http://www.xmlrpc.com/spec
-     * @see Php_Value::createFromNative
+     * @see PhpValue::createFromNative
      * @param mixed $param The result value which the response will envelop
      * @param string $encoding encoding
      * @return string The XML payload
      */
-    public static function encode($param, $encoding = 'utf-8') 
+    public static function encode($param, $encoding = 'utf-8')
     {
-        if (!$param instanceof Php_Value) {
-            $param = Php_Value::createFromNative($param);
+        if (!$param instanceof PhpValue) {
+            $param = PhpValue::createFromNative($param);
         }
         $result  = '<?xml version="1.0" encoding="' .  $encoding . '"?>' . "\n";
         $result .= '<methodResponse><params><param><value>' . $param->encode() . '</value></param></params></methodResponse>';
         return $result;
     }
-    
+
     // }}}
     // {{{ encodeFault()
-    
+
     /**
      * Encode a fault XML-RPC response, containing the provided code and message
      *
@@ -103,15 +103,15 @@ class Response
      */
     public static function encodeFault($code, $message, $encoding = 'utf-8')
     {
-        $value = new Value_Struct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
+        $value = new ValueStruct(array('faultCode' => (int) $code, 'faultString' => (string) $message));
         $result  = '<?xml version="1.0" encoding="' .  $encoding . '"?>' . "\n";
         $result .= '<methodResponse><fault><value>' . $value->encode() . '</value></fault></methodResponse>';
         return $result;
     }
-    
+
     // }}}
     // {{{ decode()
-    
+
     /**
      * Parse a response and either return the native PHP result.
      *
@@ -132,12 +132,12 @@ class Response
         }
         $paramValueNode = $xml->xpath('/methodResponse/params/param/value');
         if (count($paramValueNode) == 1) {
-            return Php_Value::createFromDecode($paramValueNode[0])->getNativeValue();
+            return PhpValue::createFromDecode($paramValueNode[0])->getNativeValue();
         }
         throw new DecodeException('Unable to decode xml-rpc response. No fault nor params/param elements found');
     }
-    
+
     // }}}
-    
+
 }
 

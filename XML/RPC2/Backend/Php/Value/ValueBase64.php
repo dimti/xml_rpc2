@@ -2,9 +2,12 @@
 
 namespace XML\RPC2\Backend\Php\Value;
 
+use XML\RPC2\Backend\Php\PhpValue as AbstractValue;
+use XML\RPC2\Exception\InvalidTypeException;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -32,7 +35,7 @@ namespace XML\RPC2\Backend\Php\Value;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -42,66 +45,93 @@ namespace XML\RPC2\Backend\Php\Value;
 // }}}
 
 // dependencies {{{
+require_once 'XML/RPC2/Backend/Php/Value/Scalar.php';
 // }}}
 
 /**
- * XML_RPC string value class. Instances of this class represent string scalars in XML_RPC
- * 
+ * XML_RPC base64 value class. Instances of this class represent base64-encoded string scalars in XML_RPC
+ *
+ * To work on a compatible way with the xmlrpcext backend, we introduce a particular "nativeValue" which is
+ * a standard class (stdclass) with two public properties :
+ * scalar => the string (non encoded)
+ * xmlrpc_type => 'base64'
+ *
+ * The constructor can be called with a "classic" string or with a such object
+ *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_String extends Value_Scalar
+class ValueBase64 extends AbstractValue
 {
-    
+
     // {{{ constructor
-    
+
     /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_String with the given value
+     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Base64 with the given value
      *
-     * @param mixed value
+     * This class handles encoding-decoding internally. Do not provide the
+     * native string base64-encoded
+     *
+     * @param mixed String $nativeValue to be transmited base64-encoded or "stdclass native value"
      */
-    public function __construct($nativeValue) 
+    public function __construct($nativeValue)
     {
-        parent::__construct('string', $nativeValue);
+        if ((is_object($nativeValue)) &&(strtolower(get_class($nativeValue)) == 'stdclass') && (isset($nativeValue->xmlrpc_type))) {
+            $scalar = $nativeValue->scalar;
+        } else {
+            if (!is_string($nativeValue)) {
+                throw new InvalidTypeException(sprintf('Cannot create XML_RPC2_Backend_Php_Value_Base64 from type \'%s\'.', gettype($nativeValue)));
+           }
+            $scalar = $nativeValue;
+        }
+        $tmp              = new \stdClass();
+        $tmp->scalar      = $scalar;
+        $tmp->xmlrpc_type = 'base64';
+        $this->setNativeValue($tmp);
     }
-    
-    // }}} 
+
+    // }}}
     // {{{ encode()
-    
+
     /**
      * Encode the instance into XML, for transport
-     * 
+     *
      * @return string The encoded XML-RPC value,
      */
-    public function encode() 
+    public function encode()
     {
-        return '<string>' . strtr($this->getNativeValue(),array('&' => '&amp;', '<' => '&lt;' , '>' => '&gt;')) . '</string>';
+        $native = $this->getNativeValue();
+        return '<base64>' . base64_encode($native->scalar) . '</base64>';
     }
-    
+
     // }}}
     // {{{ decode()
-    
+
     /**
      * Decode transport XML and set the instance value accordingly
      *
-     * @param mixed The encoded XML-RPC value,
+     * @param mixed $xml The encoded XML-RPC value,
      */
-    public static function decode($xml) 
+    public static function decode($xml)
     {
-        /* Stupid way of testing for the presence of string element. I don't know another one.
-           At least got rid of the xpath and consequent reparsing of the XML 
-        */
-        if ($xml->string->asXML() === FALSE) { 
-            return (string) $xml;
+        // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
+        // xpath is used both in an element and in one of its children
+        $xml = \simplexml_load_string($xml->asXML());
+        $value = $xml->xpath('/value/base64/text()');
+        if (!array_key_exists(0, $value)) {
+            $value = $xml->xpath('/value/text()');
         }
-        return (string) $xml->string;
+        // Emulate xmlrpcext results (to be able to switch from a backend to another)
+        $result = new \stdClass();
+        $result->scalar = base64_decode($value[0]);
+        $result->xmlrpc_type = 'base64';
+        return $result;
     }
-    
+
     // }}}
 
 }
-

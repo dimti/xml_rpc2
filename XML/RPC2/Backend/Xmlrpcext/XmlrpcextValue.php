@@ -1,14 +1,15 @@
 <?php
 
-namespace XML\RPC2\Backend\Php\Value;
+namespace XML\RPC2\Backend\Xmlrpcext;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
+use XML\RPC2\Exception\Exception;
 
 /**
 * +-----------------------------------------------------------------------------+
-* | Copyright (c) 2004-2006 Sergio Goncalves Carvalho                                |
+* | Copyright (c) 2004-2006 Sergio Gonalves Carvalho                                |
 * +-----------------------------------------------------------------------------+
 * | This file is part of XML_RPC2.                                              |
 * |                                                                             |
@@ -32,7 +33,7 @@ namespace XML\RPC2\Backend\Php\Value;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -45,50 +46,55 @@ namespace XML\RPC2\Backend\Php\Value;
 // }}}
 
 /**
- * XML_RPC double value class. Instances of this class represent int scalars in XML_RPC
+ * XML_RPC value class for the XMLRPCext backend.
  *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
  */
-class Value_Double extends Value_Scalar
+class XmlrpcextValue
 {
 
-    // {{{ constructor
-    
-    /**
-     * Constructor. Will build a new XML_RPC2_Backend_Php_Value_Double with the given value
-     *
-     * @param mixed value
-     */
-    public function __construct($nativeValue) 
-    {
-        parent::__construct('double', $nativeValue);
-    }
-    
-    // }}}
-    // {{{ decode()
-    
-    /**
-     * decode. Decode transport XML and set the instance value accordingly
-     *
-     * @param mixed The encoded XML-RPC value,
-     */
-    public static function decode($xml) 
-    {
-        // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
-        // xpath is used both in an element and in one of its children
-        $xml = simplexml_load_string($xml->asXML());
-        $value = $xml->xpath('/value/double/text()');
-        
-        // Double cast explanation: http://pear.php.net/bugs/bug.php?id=8644
-        return (double) ((string) $value[0]);
-    }
-    
-    // }}}
-    
-}
+    // {{{ createFromNative()
 
+    /**
+     * Factory method that constructs the appropriate XML-RPC encoded type value
+     *
+     * @param mixed Value to be encode
+     * @param string Explicit XML-RPC type as enumerated in the XML-RPC spec (defaults to automatically selected type)
+     * @return mixed The encoded value
+     */
+    public static function createFromNative($value, $explicitType)
+    {
+        $type = strtolower($explicitType);
+        $availableTypes = array('datetime', 'base64', 'struct');
+        if (in_array($type, $availableTypes))  {
+            if ($type=='struct') {
+                if (!(is_array($value))) {
+                    throw new Exception('With struct type, value has to be an array');
+                }
+                // Because of http://bugs.php.net/bug.php?id=21949
+                // is some cases (structs with numeric indexes), we need to be able to force the "struct" type
+                // (xmlrpc_set_type doesn't help for this, so we need this ugly hack)
+                $new = array();
+                foreach ($value as $k => $v) {
+                    $new["xml_rpc2_ugly_struct_hack_$k"] = $v;
+                    // with this "string" prefix, we are sure that the array will be seen as a "struct"
+                }
+                return $new;
+            }
+            $value2 = (string) $value;
+            if (!xmlrpc_set_type($value2, $type)) {
+                throw new Exception('Error returned from xmlrpc_set_type');
+            }
+            return $value2;
+        }
+        return $value;
+    }
+
+    // }}}
+
+}

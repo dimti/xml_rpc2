@@ -2,18 +2,18 @@
 
 namespace XML\RPC2\Backend\Php;
 
-use XML\RPC2\Backend\Php\Value\Value_Datetime;
-use XML\RPC2\Backend\Php\Value\Value_Scalar;
-use XML\RPC2\Backend\Php\Value\Value_Struct;
+use XML\RPC2\Backend\Php\Value\ValueDatetime;
+use XML\RPC2\Backend\Php\Value\ValueScalar;
+use XML\RPC2\Backend\Php\Value\ValueStruct;
 use XML\RPC2\Exception\DecodeException;
 use XML\RPC2\Exception\InvalidTypeEncodeException;
 use XML\RPC2\Value as AbstractValue;
-use XML\RPC2\Backend\Php\Value\Value_Array;
-use XML\RPC2\Backend\Php\Value\Value_Base64;
+use XML\RPC2\Backend\Php\Value\ValueArray;
+use XML\RPC2\Backend\Php\Value\ValueBase64;
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
-// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{ 
+// LICENSE AGREEMENT. If folded, press za here to unfold and read license {{{
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -41,7 +41,7 @@ use XML\RPC2\Backend\Php\Value\Value_Base64;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2005 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -58,38 +58,38 @@ use XML\RPC2\Backend\Php\Value\Value_Base64;
  *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2005 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
- * @link       http://pear.php.net/package/XML_RPC2 
+ * @link       http://pear.php.net/package/XML_RPC2
  */
-abstract class Php_Value extends AbstractValue
+abstract class PhpValue extends AbstractValue
 {
     // {{{ properties
-    
+
     /**
      * native value
-     * 
+     *
      * @var mixed
      */
     private $_nativeValue = null;
-    
+
     // }}}
     // {{{ getNativeValue()
-    
+
     /**
      * nativeValue property getter
      *
      * @return mixed The current nativeValue
      */
-    public function getNativeValue() 
+    public function getNativeValue()
     {
         return $this->_nativeValue;
-    } 
+    }
 
     // }}}
     // {{{ setNativeValue()
-    
+
     /**
      * nativeValue setter
      *
@@ -99,14 +99,14 @@ abstract class Php_Value extends AbstractValue
     {
         $this->_nativeValue = $value;
     }
-    
-    // }}}  
+
+    // }}}
     // {{{ createFromNative()
-    
+
     /**
-     * Choose a XML_RPC2_Value subclass appropriate for the 
+     * Choose a XML_RPC2_Value subclass appropriate for the
      * given value and create it.
-     * 
+     *
      * This method tries to find the most adequate XML-RPC datatype to hold
      * a given PHP native type. Note that distinguishing some datatypes may be
      * difficult:
@@ -117,21 +117,21 @@ abstract class Php_Value extends AbstractValue
      *    in the first case, an XML_RPC2_Value_Array is returned. In the second, a XML_RPC2_Value_Struct is returned.
      *  - PHP Objects are serialized and represented in an XML_RPC2_Value_Base64
      *  - Integers fitting in a 32bit integer are encoded as regular xml-rpc integers
-     *  - Integers larger than 32bit are encoded using the i8 xml-rpc extension 
+     *  - Integers larger than 32bit are encoded using the i8 xml-rpc extension
      *
-     * Whenever native object automatic detection proves inaccurate, use XML_RPC2_Value::createFromNative providing 
+     * Whenever native object automatic detection proves inaccurate, use XML_RPC2_Value::createFromNative providing
      * a valid explicit type as second argument
-     * 
+     *
      * the appropriate XML_RPC2_Value child class instead.
      *
      * @param mixed The native value
      * @param string The xml-rpc target encoding type, as per the xmlrpc spec (optional)
      * @throws InvalidTypeEncodeException When the native value has a type that can't be translated to XML_RPC
      * @return AbstractValue instance
-     * @see Php_Client::__call
+     * @see PhpClient::__call
      * @see Server
      */
-    public static function createFromNative($nativeValue, $explicitType = null) 
+    public static function createFromNative($nativeValue, $explicitType = null)
     {
         if (is_null($explicitType)) {
             switch (gettype($nativeValue)) {
@@ -165,7 +165,7 @@ abstract class Php_Value extends AbstractValue
                 case 'object':
                     if ((strtolower(get_class($nativeValue)) == 'stdclass') && (isset($nativeValue->xmlrpc_type))) {
                         // In this case, we have a "stdclass native value" (emulate xmlrpcext)
-                        // the type 'base64' or 'datetime' is given by xmlrpc_type public property 
+                        // the type 'base64' or 'datetime' is given by xmlrpc_type public property
                         $explicitType = $nativeValue->xmlrpc_type;
                     } else {
                         $nativeValue = serialize($nativeValue);
@@ -183,11 +183,11 @@ abstract class Php_Value extends AbstractValue
                         gettype($nativeValue),
                         (string) $nativeValue));
             }
-        }        
+        }
         $explicitType = ucfirst(strtolower($explicitType));
         switch ($explicitType) {
             case 'I8':
-                return Value_Scalar::createFromNative($nativeValue, 'Integer64');
+                return ValueScalar::createFromNative($nativeValue, 'Integer64');
                 break;
             case 'I4':
             case 'Int':
@@ -195,41 +195,41 @@ abstract class Php_Value extends AbstractValue
             case 'Double':
             case 'String':
             case 'Nil':
-                return Value_Scalar::createFromNative($nativeValue);
+                return ValueScalar::createFromNative($nativeValue);
                 break;
             case 'Datetime.iso8601':
             case 'Datetime':
-                return new Value_Datetime($nativeValue);
+                return new ValueDatetime($nativeValue);
                 break;
             case 'Base64':
-                return new Value_Base64($nativeValue);
+                return new ValueBase64($nativeValue);
                 break;
             case 'Array':
-                return new Value_Array($nativeValue);
+                return new ValueArray($nativeValue);
                 break;
             case 'Struct':
-                return new Value_Struct($nativeValue);
+                return new ValueStruct($nativeValue);
                 break;
             default:
                 throw new InvalidTypeEncodeException(sprintf('Unexpected explicit encoding type \'%s\'', $explicitType));
         }
     }
-    
+
     // }}}
     // {{{ createFromDecode()
-    
+
     /**
      * Decode an encoded value and build the applicable XML_RPC2_Value subclass
-     * 
+     *
      * @param \SimpleXMLElement The encoded XML-RPC value
      * @return mixed the corresponding XML_RPC2_Value object
      */
-    public static function createFromDecode($simpleXML) 
+    public static function createFromDecode($simpleXML)
     {
         // TODO Remove reparsing of XML fragment, when SimpleXML proves more solid. Currently it segfaults when
         // xpath is used both in an element and in one of its children
         $simpleXML = \simplexml_load_string($simpleXML->asXML());
-        
+
         $valueType = $simpleXML->xpath('./*');
         if (count($valueType) == 1) { // Usually we must check the node name
             $nodename = \dom_import_simplexml($valueType[0])->nodeName;
@@ -274,31 +274,31 @@ abstract class Php_Value extends AbstractValue
         } else {
             throw new DecodeException(sprintf('Unable to decode XML-RPC value. Value presented %s type nodes: %s.', count($valueType), $simpleXML->asXML()));
         }
-        $nativeType = 'Value_' . $nativeType;
+        $nativeType = '\XML\RPC2\Backend\Php\Value\Value' . $nativeType;
         return self::createFromNative(@call_user_func(array($nativeType, 'decode'), $simpleXML), $nodename);
     }
-    
+
     // }}}
     // {{{ encode()
-        
+
     /**
      * Encode the instance into XML, for transport
-     * 
+     *
      * @return string The encoded XML-RPC value,
      */
      // Declaration commented because of: http://pear.php.net/bugs/bug.php?id=8499
 //    public abstract function encode();
-    
+
     // }}}
     // {{{ decode()
-    
+
     /**
      * decode. Decode transport XML and set the instance value accordingly
-     * 
+     *
      * @param mixed The encoded XML-RPC value,
      */
      // Declaration commented because of: http://pear.php.net/bugs/bug.php?id=8499
 //    public static abstract function decode($xml);
-    
+
     // }}}
 }

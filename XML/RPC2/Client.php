@@ -11,8 +11,8 @@ use XML\RPC2\Exception\InvalidDebugException;
 use XML\RPC2\Exception\InvalidPrefixException;
 use XML\RPC2\Exception\InvalidSslverifyException;
 use XML\RPC2\Exception\InvalidUriException;
-use XML\RPC2\Backend\Php\Php_Client;
-use XML\RPC2\Backend\Xmlrpcext\Xmlrpcext_Client;
+use XML\RPC2\Backend\Php\PhpClient;
+use XML\RPC2\Backend\Xmlrpcext\XmlrpcextClient;
 
 /**
 * +-----------------------------------------------------------------------------+
@@ -40,7 +40,7 @@ use XML\RPC2\Backend\Xmlrpcext\Xmlrpcext_Client;
 *
 * @category   XML
 * @package    XML_RPC2
-* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+* @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
 * @copyright  2004-2006 Sergio Carvalho
 * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
 * @version    CVS: $Id$
@@ -54,25 +54,25 @@ use XML\RPC2\Backend\Xmlrpcext\Xmlrpcext_Client;
 
 /**
  * XML_RPC client class. Use this class to access remote methods.
- * 
- * To use this class, construct it providing the server URL and method prefix. 
+ *
+ * To use this class, construct it providing the server URL and method prefix.
  * Then, call remote methods on the new instance as if they were local.
- * 
+ *
  * Example:
  * <code>
  *  require_once 'XML_RPC2/Client.php';
- * 
+ *
  *  $client = XML_RPC2_Client('http://xmlrpc.example.com/1.0/', 'example.');
  *  $result = $client->hello('Sergio');
  *  print($result);
  * </code>
- * 
+ *
  * The above example will call the example.hello method on the xmlrpc.example.com
- * server, under the /1.0/ URI. 
- * 
+ * server, under the /1.0/ URI.
+ *
  * @category   XML
  * @package    XML_RPC2
- * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>  
+ * @author     Sergio Carvalho <sergio.carvalho@portugalmail.com>
  * @copyright  2004-2006 Sergio Carvalho
  * @license    http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
  * @link       http://pear.php.net/package/XML_RPC2
@@ -80,35 +80,35 @@ use XML\RPC2\Backend\Xmlrpcext\Xmlrpcext_Client;
 abstract class Client
 {
     // {{{ properties
-    
+
     /**
      * uri Field (holds the uri for the XML_RPC server)
      *
      * @var string
      */
     protected $uri = null;
-    
+
     /**
      * proxy Field (holds the proxy server data)
      *
      * @var string
      */
     protected $proxy = null;
-    
+
     /**
      * Holds the prefix to prepend to method names
      *
      * @var string
      */
     protected $prefix = null;
-    
-    /** 
-     * Holds the debug flag 
+
+    /**
+     * Holds the debug flag
      *
      * @var boolean
      */
     protected $debug = false;
-    
+
     /**
      * Hold the encoding of the client request
      *
@@ -122,14 +122,14 @@ abstract class Client
      * @var string
      */
     protected $escaping = array('non-ascii', 'non-print', 'markup');
-    
+
     /**
      * Holds the SSL verify flag
      *
      * @var boolean
      */
     protected $sslverify = true;
-    
+
     /**
      * Holds the connection timeout in milliseconds of the client request.
      *
@@ -139,25 +139,25 @@ abstract class Client
 
     /**
      * ugly hack flag to avoid http://bugs.php.net/bug.php?id=21949
-     * 
+     *
      * see XML_RPC2_Backend_Xmlrpcext_Value::createFromNative() from more infos
      */
     protected $uglyStructHack = true;
 
-    /** 
+    /**
      * Preconfigured HTTP_Request2 provided by the user
      *
      * @var HTTP_Request2
      */
     protected $httpRequest;
     // }}}
-    
+
     // {{{ constructor
-    
+
     /**
      * Construct a new XML_RPC2_Client.
      *
-     * To create a new XML_RPC2_Client, a URI must be provided (e.g. http://xmlrpc.example.com/1.0/). 
+     * To create a new XML_RPC2_Client, a URI must be provided (e.g. http://xmlrpc.example.com/1.0/).
      * Optionally, some options may be set as an associative array. Accepted keys are :
      * 'prefix', 'proxy', 'debug' => see correspondant property to get more informations
      * 'encoding' => The XML encoding for the requests (optional, defaults to utf-8)
@@ -200,7 +200,7 @@ abstract class Client
             // TODO : control & exception
             $this->escaping = $options['escaping'];
         }
-        if (isset($options['uglyStructHack'])) {  
+        if (isset($options['uglyStructHack'])) {
             $this->uglyStructHack = $options['uglyStructHack'];
         }
         if (isset($options['sslverify'])) {
@@ -215,19 +215,19 @@ abstract class Client
             }
             $this->connectionTimeout = $options['connectionTimeout'];
         }
-        if (isset($options['httpRequest'])) {  
+        if (isset($options['httpRequest'])) {
             $this->httpRequest = $options['httpRequest'];
         }
     }
-    
+
     // }}}
     // {{{ create()
-    
+
     /**
      * Factory method to select, create and return a XML_RPC2_Client backend
      *
-     * To create a new XML_RPC2_Client, a URI must be provided (e.g. http://xmlrpc.example.com/1.0/). 
-     * 
+     * To create a new XML_RPC2_Client, a URI must be provided (e.g. http://xmlrpc.example.com/1.0/).
+     *
      * Optionally, some options may be set.
      *
      * @param string URI for the XML-RPC server
@@ -241,17 +241,17 @@ abstract class Client
         $backend = "\\XML\\RPC2\\Backend\\".Backend::getClientClassname();
         return new $backend($uri, $options);
     }
-    
+
     // }}}
     // {{{ __call()
 
     /**
      * __call Catchall. This method catches remote method calls and provides for remote forwarding.
      *
-     * If the parameters are native types, this method will use XML_RPC_Value::createFromNative to 
+     * If the parameters are native types, this method will use XML_RPC_Value::createFromNative to
      * convert it into an XML-RPC type. Whenever a parameter is already an instance of XML_RPC_Value
      * it will be used as provided. It follows that, in situations when XML_RPC_Value::createFromNative
-     * proves inacurate -- as when encoding DateTime values -- you should present an instance of 
+     * proves inacurate -- as when encoding DateTime values -- you should present an instance of
      * XML_RPC_Value in lieu of the native parameter.
      *
      * @param   string      Method name
@@ -259,7 +259,7 @@ abstract class Client
      * @return  mixed       The call result, already decoded into native types
      */
     public abstract function __call($methodName, $parameters);
-   
+
     // }}}
 }
 
